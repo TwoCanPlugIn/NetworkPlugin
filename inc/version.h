@@ -1,0 +1,6 @@
+#define PLUGIN_VERSION_MAJOR 1
+#define PLUGIN_VERSION_MINOR 0
+#define PLUGIN_VERSION_PATCH 0
+#define NAME_SUFFIX "ov5.0"
+#define PLUGIN_VERSION_DATE "24/12/2019"
+#define PLUGIN_PACKAGE_NAME "race_start_display_pi"
