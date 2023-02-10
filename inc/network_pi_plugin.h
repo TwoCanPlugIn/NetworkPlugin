@@ -72,8 +72,8 @@ typedef struct ProductInformation {
 	wxString softwareVersion;
 	wxString modelVersion;
 	wxString serialNumber;
-	byte certificationLevel;
-	byte loadEquivalency;
+	unsigned char certificationLevel;
+	unsigned char loadEquivalency;
 } ProductInformation;
 
 // NMEA 2000 Device Information, transmitted in PGN 60928 ISO Address Claim
@@ -81,8 +81,8 @@ typedef struct DeviceInformation {
 	unsigned long uniqueId;
 	unsigned int deviceClass;
 	unsigned int deviceFunction;
-	byte deviceInstance;
-	byte industryGroup;
+	unsigned char deviceInstance;
+	unsigned char industryGroup;
 	unsigned int manufacturerId;
 } DeviceInformation;
 
