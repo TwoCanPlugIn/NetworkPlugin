@@ -111,7 +111,7 @@ exitNetwork:
 
 	// We only transmit PGN 59904 ISO Request
 	std::vector<int> pgnList{ 59904 };
-	CommDriverResult result = RegisterTXPGNs(driverHandle, pgnList);
+	// CommDriverResult result = RegisterTXPGNs(driverHandle, pgnList);
 
 	// Initialize NMEA 2000 NavMsg listeners
 
