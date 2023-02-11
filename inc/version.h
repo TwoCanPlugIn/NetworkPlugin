@@ -4,3 +4,5 @@
 #define NAME_SUFFIX "ov5.0"
 #define PLUGIN_VERSION_DATE "31/01/2023"
 #define PLUGIN_PACKAGE_NAME "network_pi"
+#define OCPN_API_VERSION_MAJOR 1
+#define OCPN_API_VERSION_MINOR 17

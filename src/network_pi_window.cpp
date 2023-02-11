@@ -33,7 +33,7 @@ NetworkWindow::NetworkWindow( wxWindow* parent, wxEvtHandler *handler) : Network
 	
 	// Set the dialog's icon
 	wxIcon icon;
-	icon.CopyFromBitmap(*_img_racing_logo_32);
+	icon.CopyFromBitmap(*_img_network_colour);
 	NetworkWindow::SetIcon(icon);
 	parent->GetSize(&parentWidth, &parentHeight);
 

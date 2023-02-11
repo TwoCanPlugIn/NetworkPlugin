@@ -289,11 +289,11 @@ void NetworkPlugin::LateInit(void) {
 
 // Indicate what version of the OpenCPN Plugin API we support
 int NetworkPlugin::GetAPIVersionMajor() {
-	return OPENCPN_API_VERSION_MAJOR;
+	return OCPN_API_VERSION_MAJOR;
 }
 
 int NetworkPlugin::GetAPIVersionMinor() {
-	return OPENCPN_API_VERSION_MINOR;
+	return OCPN_API_VERSION_MINOR;
 }
 
 // Our plugin version numbers. 
@@ -321,7 +321,7 @@ wxString NetworkPlugin::GetLongDescription() {
 // 32x32 pixel image displayed in the Toolbox Plugins page
 // Use pgn2wx.pl perl script to generate
 wxBitmap* NetworkPlugin::GetPlugInBitmap() {
-	return _img_racing_logo_32;
+	return _img_network_colour;
 }
 
 // Add our own settings panel on the OpenCPN toolbox
