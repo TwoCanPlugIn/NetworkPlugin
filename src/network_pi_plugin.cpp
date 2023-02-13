@@ -82,9 +82,9 @@ int NetworkPlugin::Init(void) {
 	// Load toolbar icons
 	wxString shareLocn = GetPluginDataDir(PLUGIN_PACKAGE_NAME) + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
 
-	wxString normalIcon = shareLocn + _T("racing_icon_normal.svg");
-	wxString toggledIcon = shareLocn + _T("racing_icon_toggled.svg");
-	wxString rolloverIcon = shareLocn + _T("racing_icon_rollover.svg");
+	wxString normalIcon = shareLocn + _T("network-normal.svg");
+	wxString toggledIcon = shareLocn + _T("network-toggled.svg");
+	wxString rolloverIcon = shareLocn + _T("network-rollover.svg");
 
 	// Initialize the toolbar id's
 	networkToolbar = 0;
@@ -98,7 +98,7 @@ int NetworkPlugin::Init(void) {
 	// Enumerate the drivers and select a NMEA 2000 network connection
 	for (auto const& activeDriver : activeDrivers) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
-			wxMessageBox(wxString::Format("%d: %s", driver.first, driver.second));
+			wxLogMessage(_T("Network Plugin, Handle: %s, Name: %s", driver.first, driver.second));
 			if (driver.second == "NMEA2000") {
 				// Save the first device as a handle 
 				driverHandle = activeDriver;
@@ -111,7 +111,7 @@ exitNetwork:
 
 	// We only transmit PGN 59904 ISO Request
 	std::vector<int> pgnList{ 59904 };
-	// CommDriverResult result = RegisterTXPGNs(driverHandle, pgnList);
+	CommDriverResult result = RegisterTXPGNs(driverHandle, pgnList);
 
 	// Initialize NMEA 2000 NavMsg listeners
 
@@ -194,7 +194,7 @@ exitNetwork:
 	wxLogMessage(_T("*** Private App: %s"), *GetpPrivateApplicationDataLocation());
 	wxLogMessage(_T("*** Doc Path: %s"), GetWritableDocumentsDir());
 	wxLogMessage(_T("*** Toolbox: %d"), GetToolboxPanelCount());
-	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("Race Start Display"));
+	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("Network Plugin"));
 
 	// Initialize Debug Spew via UDP
 	addrLocal.Hostname();
@@ -216,6 +216,9 @@ exitNetwork:
 }
 
 void NetworkPlugin::OnTimer() {
+
+	wxLogMessage(_T("Network Plugin - On Timer"));
+	
 	std::vector<uint8_t> payload;
 
 	payload.push_back(60928 & 0xFF);
