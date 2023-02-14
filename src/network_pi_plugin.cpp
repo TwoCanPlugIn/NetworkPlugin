@@ -98,7 +98,7 @@ int NetworkPlugin::Init(void) {
 	// Enumerate the drivers and select a NMEA 2000 network connection
 	for (auto const& activeDriver : activeDrivers) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
-			wxLogMessage(_T("Network Plugin, Handle: %s, Name: %s", driver.first, driver.second));
+			wxLogMessage(_T("Network Plugin, Handle: %s, Name: %s"), driver.first, driver.second);
 			if (driver.second == "NMEA2000") {
 				// Save the first device as a handle 
 				driverHandle = activeDriver;
