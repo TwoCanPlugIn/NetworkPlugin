@@ -49,7 +49,7 @@
 // NMEA 2000 Network dialog modal window
 #include "network_pi_dialog.h"
 // or a non modal version
-#include "network_pi_window.h"
+//#include "network_pi_window.h"
 
 // OCPN Toolbox Panel used for configuration settings
 #include "network_pi_toolbox.h"
@@ -80,12 +80,20 @@ typedef struct DeviceInformation {
 	unsigned char deviceInstance;
 	unsigned char industryGroup;
 	unsigned int manufacturerId;
+	unsigned char selfConfigure;
 } DeviceInformation;
+
+typedef struct ConfigurationInformation {
+	wxString information1;
+	wxString information2;
+	wxString information3;
+} ConfigurationInformation;
 
 // Used  to store the data for the Network Map, combines elements from address claim & product information
 typedef struct NetworkInformation {
 	DeviceInformation deviceInformation;
 	ProductInformation productInformation;
+	ConfigurationInformation configurationInformation;
 	wxDateTime timestamp; // Updated upon reception of heartbeat or address claim. Used to determine stale entries
 } NetworkInformation;
 
@@ -138,7 +146,7 @@ private:
 	NetworkDialog *networkDialog;
 	// or
 	// Network Plugin modeless dialog
-	NetworkWindow *networkWindow;
+	//NetworkWindow *networkWindow;
 
 	// Plugin bitmap
 	wxBitmap pluginBitmap;
@@ -160,7 +168,7 @@ private:
 
 	// Timer & Timer Events
 	wxTimer *oneMinuteTimer;
-	void OnTimer();
+	void OnTimer(wxTimerEvent &event);
 
 	// NMEA 2000
 	DriverHandle driverHandle;
@@ -191,7 +199,6 @@ private:
 	std::shared_ptr<ObservableListener> listener_126998;
 
 	// Array of network devices & their product and device information
-	// BUG BUG Array, vector or map ??
 	NetworkInformation networkInformation[253];
 
 };

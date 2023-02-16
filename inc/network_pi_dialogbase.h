@@ -9,52 +9,43 @@
 
 #include <wx/artprov.h>
 #include <wx/xrc/xmlres.h>
-#include <wx/string.h>
-#include <wx/stattext.h>
-#include <wx/gdicmn.h>
-#include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
+#include <wx/string.h>
+#include <wx/font.h>
+#include <wx/grid.h>
+#include <wx/gdicmn.h>
 #include <wx/sizer.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/icon.h>
 #include <wx/button.h>
-#include <wx/panel.h>
+#include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Class NetworkDialog
+/// Class NetworkDialogBase
 ///////////////////////////////////////////////////////////////////////////////
-class NetworkDialogBase : public wxPanel
+class NetworkDialogBase : public wxDialog
 {
 	private:
 
 	protected:
-		wxStaticText* labelSpeed;
-		wxStaticText* labelTimer;
-		wxStaticText* labelTTG;
-		wxStaticText* labelDistance;
-		wxButton* buttonStart;
-		wxButton* buttonReset;
-		wxButton* buttonPort;
-		wxButton* buttonStbd;
-		wxStdDialogButtonSizer* sizerDialogButtons;
-		wxButton* sizerDialogButtonsCancel;
+		wxGrid* gridNetwork;
+		wxButton* btnCancel;
+		wxButton* btnOK;
 
 		// Virtual event handlers, overide them in your derived class
-		virtual void OnStart( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnReset( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnPort( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnStbd( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnRightClick( wxGridEvent& event ) { event.Skip(); }
 		virtual void OnCancel( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnOk( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:
 
-		NetworkDialogBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+		NetworkDialogBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("NMEA 2000 Network"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
 		~NetworkDialogBase();
 
 };

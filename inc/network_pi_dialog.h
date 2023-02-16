@@ -1,4 +1,4 @@
-// Copyright(C) 2018-2020 by Steven Adler
+// Copyright(C) 2023 by Steven Adler
 //
 // This file is part of NMEA 2000 Network plugin for OpenCPN.
 //
@@ -30,18 +30,17 @@
 // Note wxFormBuilder used to generate UI
 #include "network_pi_dialogbase.h"
 
-
 #include <wx/timer.h>
 
 #include <wx/log.h>
 
-// BUG BUG
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
-#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
-
-
 // image for dialog icon
 extern wxBitmap *_img_network_colour;
+
+extern int const wxEVT_NETWORK_PLUGIN_EVENT;
+extern const int NETWORKDIALOG_OPEN_EVENT;
+extern const int NETWORKDIALOG_CLOSE_EVENT;
+extern const int NETWORKDIALOG_PING_EVENT;
 
 class NetworkDialog : public NetworkDialogBase {
 	
@@ -52,13 +51,13 @@ public:
 	wxTimer *oneMinuteTimer;
 	void OnTimer(wxTimerEvent& event);
 	
-	
 protected:
 	//overridden methods from the base class
 	void OnInit(wxInitDialogEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void OnPing(wxCommandEvent &event);
 	void OnCancel(wxCommandEvent &event);
+	void OnRightClick(wxCommandEvent &event);
 	
 private:
 	void ResetTimer(void);

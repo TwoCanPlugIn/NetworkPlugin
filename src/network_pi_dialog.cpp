@@ -1,4 +1,4 @@
-ï»¿// Copyright(C) 2018-2020 by Steven Adler
+// Copyright(C) 2023 by Steven Adler
 //
 // This file is part of NMEA 2000 Network plugin for OpenCPN.
 //
@@ -15,10 +15,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the NMEA 2000 Network plugin for OpenCPN. If not, see <https://www.gnu.org/licenses/>.
 //
+// NMEA2000® is a registered trademark of the National Marine Electronics Association
 
 
 // Project: NMEA 2000 Network Plugin
-// Description: NMEA 2000 Network Display plugin for OpenCPN
+// Description: modal dialog for OpenCPN
 // Owner: twocanplugin@hotmail.com
 // Date: 31/01/2023
 // Version History: 
@@ -28,11 +29,16 @@
 #include "network_pi_dialog.h"
 
 // Constructor and destructor implementation
-NetworkDialog::NetworkDialog( wxWindow* parent) : NetworkDialogBase(parent) {
+NetworkDialog::NetworkDialog(wxWindow* parent) : NetworkDialogBase(parent) {
+
 	// Set the dialog's icon
 	wxIcon icon;
 	icon.CopyFromBitmap(*_img_network_colour);
+	SetIcon(icon);
 	parent->GetSize(&parentWidth, &parentHeight);
+
+	// Maintain a reference to the parent event handler
+	//eventHandlerAddress = handler;
 }
 
 NetworkDialog::~NetworkDialog() {
@@ -40,73 +46,68 @@ NetworkDialog::~NetworkDialog() {
 }
 
 void NetworkDialog::OnInit(wxInitDialogEvent& event) {
-	// Set larger and more readable fonts
-	wxFont bigFont = labelSpeed->GetFont();
-	bigFont.SetPointSize( 16 );
-	bigFont.SetWeight(wxFONTWEIGHT_BOLD);
-	labelSpeed->SetFont( bigFont );
-	labelTimer->SetFont( bigFont );
-	labelDistance->SetFont( bigFont );
-	labelTTG->SetFont( bigFont );
-		
 	// Ensure the dialog is sized correctly	
 	Fit();
-		
+
 	// And move to bottom right of the screen
-	// BUG BUG OnResize ??
 	int dialogWidth;
 	int dialogHeight;
 	this->GetSize(&dialogWidth, &dialogHeight);
-	this->SetPosition(wxPoint(parentWidth-dialogWidth,parentHeight - dialogHeight));
-	
+	this->SetPosition(wxPoint(parentWidth - dialogWidth, parentHeight - dialogHeight));
+
 	// Initialize the timer
 	oneMinuteTimer = new wxTimer();
 	oneMinuteTimer->Connect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkDialog::OnTimer), NULL, this);
-	ResetTimer();
+	//ResetTimer();
 
 }
 
 void NetworkDialog::OnClose(wxCloseEvent& event) {
-	if (oneMinuteTimer->IsRunning()) {
-		oneMinuteTimer->Stop();
-	}
-	oneMinuteTimer->Disconnect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkDialog::OnTimer));
-	delete oneMinuteTimer;
 
-	Close();
+	oneMinuteTimer->Disconnect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkDialog::OnTimer));
+
+	if (oneMinuteTimer != nullptr) {
+		delete oneMinuteTimer;
+	}
+
+	// Notify the parent we have closed, so that it can update its toolbar state
+	//networkWindowIsVisible = false;
+
+	//wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
+	//wxQueueEvent(eventHandlerAddress, closeEvent);
+
+	event.Skip();
 }
+
 
 void NetworkDialog::OnTimer(wxTimerEvent& event) {
 	// Update the countdown timer
 	totalSeconds -= 1;
-	
+
 	minutes = trunc(totalSeconds / 60);
 	seconds = totalSeconds - (minutes * 60);
-	
-	// Display the count down timer
-	labelTimer->SetLabel(wxString::Format("%1d:%02d",minutes, seconds));
 
-	// Display our current speed
-	// BUG BUG Check what OpenCPN sends, knots or metres per second....
-	//labelSpeed->SetLabel(wxString::Format("%02.2f Kts",speedOverGround));
-	
-	
+	// Display the count down timer
+	//labelTimer->SetLabel(wxString::Format("%1d:%02d", minutes, seconds));
+
+}
+
+void NetworkDialog::OnPing(wxCommandEvent &event) {
+	// Notify Parent
+	//wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_PING_EVENT);
+	//wxQueueEvent(eventHandlerAddress, closeEvent);
 }
 
 void NetworkDialog::OnCancel(wxCommandEvent &event) {
-	if (oneMinuteTimer->IsRunning()) {
-		oneMinuteTimer->Stop();
-	}
-	oneMinuteTimer->Disconnect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkDialog::OnTimer));
-	delete oneMinuteTimer;
-
-	Close();
+	this->Close();
 }
 
 void NetworkDialog::ResetTimer(void) {
-	// Reset the countdown timer for 5 minutes
+	// Reset the timer
 	totalSeconds = 300;
 	minutes = trunc(totalSeconds / 60);
 	seconds = totalSeconds - (minutes * 60);
-	labelTimer->SetLabel(wxString::Format("%1d:%02d",minutes, seconds));
+	//labelTimer->SetLabel(wxString::Format("%1d:%02d", minutes, seconds));
 }
+
+

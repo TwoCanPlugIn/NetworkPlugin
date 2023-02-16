@@ -9,85 +9,81 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
+NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
 	wxBoxSizer* sizerDialog;
 	sizerDialog = new wxBoxSizer( wxVERTICAL );
 
-	wxGridSizer* sizerLabels;
-	sizerLabels = new wxGridSizer( 2, 2, 0, 0 );
+	wxBoxSizer* sizerTabs;
+	sizerTabs = new wxBoxSizer( wxVERTICAL );
 
-	labelSpeed = new wxStaticText( this, wxID_ANY, wxT("Speed"), wxDefaultPosition, wxDefaultSize, 0 );
-	labelSpeed->SetLabelMarkup( wxT("Speed") );
-	labelSpeed->Wrap( -1 );
-	sizerLabels->Add( labelSpeed, 0, wxALL, 5 );
+	gridNetwork = new wxGrid( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 
-	labelTimer = new wxStaticText( this, wxID_ANY, wxT("Timer"), wxDefaultPosition, wxDefaultSize, 0 );
-	labelTimer->SetLabelMarkup( wxT("Timer") );
-	labelTimer->Wrap( -1 );
-	sizerLabels->Add( labelTimer, 0, wxALL, 5 );
+	// Grid
+	gridNetwork->CreateGrid( 253, 3 );
+	gridNetwork->EnableEditing( false );
+	gridNetwork->EnableGridLines( true );
+	gridNetwork->EnableDragGridSize( false );
+	gridNetwork->SetMargins( 0, 0 );
 
-	labelTTG = new wxStaticText( this, wxID_ANY, wxT("TTG"), wxDefaultPosition, wxDefaultSize, 0 );
-	labelTTG->SetLabelMarkup( wxT("TTG") );
-	labelTTG->Wrap( -1 );
-	sizerLabels->Add( labelTTG, 0, wxALL, 5 );
+	// Columns
+	gridNetwork->SetColSize( 0, 85 );
+	gridNetwork->SetColSize( 1, 120 );
+	gridNetwork->SetColSize( 2, 120 );
+	gridNetwork->EnableDragColMove( false );
+	gridNetwork->EnableDragColSize( true );
+	gridNetwork->SetColLabelSize( 30 );
+	gridNetwork->SetColLabelValue( 0, wxT("Unique Id") );
+	gridNetwork->SetColLabelValue( 1, wxT("Manufacturer") );
+	gridNetwork->SetColLabelValue( 2, wxT("Model Id") );
+	gridNetwork->SetColLabelAlignment( wxALIGN_LEFT, wxALIGN_CENTER );
 
-	labelDistance = new wxStaticText( this, wxID_ANY, wxT("Distance"), wxDefaultPosition, wxDefaultSize, 0 );
-	labelDistance->SetLabelMarkup( wxT("Distance") );
-	labelDistance->Wrap( -1 );
-	sizerLabels->Add( labelDistance, 0, wxALL, 5 );
+	// Rows
+	gridNetwork->EnableDragRowSize( true );
+	gridNetwork->SetRowLabelSize( 80 );
+	gridNetwork->SetRowLabelAlignment( wxALIGN_LEFT, wxALIGN_CENTER );
 
+	// Label Appearance
 
-	sizerDialog->Add( sizerLabels, 1, wxEXPAND, 5 );
-
-	wxGridSizer* sizerButtons;
-	sizerButtons = new wxGridSizer( 2, 2, 0, 0 );
-
-	buttonStart = new wxButton( this, wxID_ANY, wxT("Start Timer"), wxDefaultPosition, wxDefaultSize, 0 );
-	buttonStart->SetLabelMarkup( wxT("Start Timer") );
-	sizerButtons->Add( buttonStart, 0, wxALL, 5 );
-
-	buttonReset = new wxButton( this, wxID_ANY, wxT("Reset Timer"), wxDefaultPosition, wxDefaultSize, 0 );
-	buttonReset->SetLabelMarkup( wxT("Reset Timer") );
-	sizerButtons->Add( buttonReset, 0, wxALL, 5 );
-
-	buttonPort = new wxButton( this, wxID_ANY, wxT("Port Mark"), wxDefaultPosition, wxDefaultSize, 0 );
-	buttonPort->SetLabelMarkup( wxT("Port Mark") );
-	sizerButtons->Add( buttonPort, 0, wxALL, 5 );
-
-	buttonStbd = new wxButton( this, wxID_ANY, wxT("Stbd Mark"), wxDefaultPosition, wxDefaultSize, 0 );
-	buttonStbd->SetLabelMarkup( wxT("Stbd Mark") );
-	sizerButtons->Add( buttonStbd, 0, wxALL, 5 );
+	// Cell Defaults
+	gridNetwork->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
+	sizerTabs->Add( gridNetwork, 0, wxALL, 5 );
 
 
-	sizerDialog->Add( sizerButtons, 1, wxEXPAND, 5 );
+	sizerDialog->Add( sizerTabs, 0, wxEXPAND, 5 );
 
-	sizerDialogButtons = new wxStdDialogButtonSizer();
-	sizerDialogButtonsCancel = new wxButton( this, wxID_CANCEL );
-	sizerDialogButtons->AddButton( sizerDialogButtonsCancel );
-	sizerDialogButtons->Realize();
+	wxBoxSizer* sizerButtons;
+	sizerButtons = new wxBoxSizer( wxHORIZONTAL );
 
-	sizerDialog->Add( sizerDialogButtons, 1, wxEXPAND, 5 );
+	btnCancel = new wxButton( this, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerButtons->Add( btnCancel, 0, wxALL, 5 );
+
+	btnOK = new wxButton( this, wxID_ANY, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerButtons->Add( btnOK, 0, wxALL, 5 );
+
+
+	sizerDialog->Add( sizerButtons, 0, wxEXPAND, 5 );
 
 
 	this->SetSizer( sizerDialog );
 	this->Layout();
+	sizerDialog->Fit( this );
+
+	this->Centre( wxBOTH );
 
 	// Connect Events
-	buttonStart->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnStart ), NULL, this );
-	buttonReset->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnReset ), NULL, this );
-	buttonPort->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnPort ), NULL, this );
-	buttonStbd->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnStbd ), NULL, this );
-	sizerDialogButtonsCancel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnCancel ), NULL, this );
+	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
+	btnCancel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnCancel ), NULL, this );
+	btnOK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnOk ), NULL, this );
 }
 
 NetworkDialogBase::~NetworkDialogBase()
 {
 	// Disconnect Events
-	buttonStart->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnStart ), NULL, this );
-	buttonReset->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnReset ), NULL, this );
-	buttonPort->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnPort ), NULL, this );
-	buttonStbd->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnStbd ), NULL, this );
-	sizerDialogButtonsCancel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnCancel ), NULL, this );
+	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
+	btnCancel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnCancel ), NULL, this );
+	btnOK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnOk ), NULL, this );
 
 }

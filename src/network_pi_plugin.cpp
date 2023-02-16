@@ -96,6 +96,7 @@ int NetworkPlugin::Init(void) {
 	std::vector<DriverHandle> activeDrivers = GetActiveDrivers();
 
 	// Enumerate the drivers and select a NMEA 2000 network connection
+
 	for (auto const& activeDriver : activeDrivers) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
 			wxLogMessage(_T("Network Plugin, Handle: %s, Name: %s"), driver.first, driver.second);
@@ -111,9 +112,18 @@ exitNetwork:
 
 	// We only transmit PGN 59904 ISO Request
 	std::vector<int> pgnList{ 59904 };
-	CommDriverResult result = RegisterTXPGNs(driverHandle, pgnList);
+	CommDriverResult result;
+	// result = RegisterTXPGNs(driverHandle, pgnList);
 
 	// Initialize NMEA 2000 NavMsg listeners
+
+	// PGN 60928 ISO Address Claim
+	wxDEFINE_EVENT(EVT_N2K_60928, ObservedEvt);
+	NMEA2000Id id_60928 = NMEA2000Id(60928);
+	listener_60928 = std::move(GetListener(id_60928, EVT_N2K_60928, this));
+	Bind(EVT_N2K_60928, [&](ObservedEvt ev) {
+		HandleN2K_60928(ev);
+	});
 
 	// PGN 126996 Product Information
 	wxDEFINE_EVENT(EVT_N2K_126996, ObservedEvt);
@@ -123,7 +133,7 @@ exitNetwork:
 		HandleN2K_126996(ev);
 	});
 
-	// PGN 126998 Configurtion Information
+	// PGN 126998 Configuration Information
 	wxDEFINE_EVENT(EVT_N2K_126998, ObservedEvt);
 	NMEA2000Id id_126998 = NMEA2000Id(126998);
 	listener_126998 = std::move(GetListener(id_126998, EVT_N2K_126998, this));
@@ -208,17 +218,19 @@ exitNetwork:
 
 	// Start a timer to transmit NMEA 2000 network queries
 	oneMinuteTimer = new wxTimer();
-	oneMinuteTimer->Connect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkWindow::OnTimer), NULL, this);
+	oneMinuteTimer->Connect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
 	oneMinuteTimer->Start(60000);
 
 	// Notify OpenCPN of our capabilities and what events we want to receive callbacks for
 	return (WANTS_CONFIG | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | INSTALLS_CONTEXTMENU_ITEMS | WANTS_CURSOR_LATLON | WANTS_OVERLAY_CALLBACK | INSTALLS_TOOLBOX_PAGE | WANTS_NMEA_EVENTS | WANTS_NMEA_SENTENCES | WANTS_AIS_SENTENCES | WANTS_LATE_INIT | WANTS_PLUGIN_MESSAGING);
 }
 
-void NetworkPlugin::OnTimer() {
+void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	wxLogMessage(_T("Network Plugin - On Timer"));
 	
+	CommDriverResult result;
+
 	std::vector<uint8_t> payload;
 
 	payload.push_back(60928 & 0xFF);
@@ -227,7 +239,7 @@ void NetworkPlugin::OnTimer() {
 
 	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 
 	payload.clear();
 	payload.push_back(126996 & 0xFF);
@@ -236,7 +248,7 @@ void NetworkPlugin::OnTimer() {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 
 	payload.clear();
 	payload.push_back(126998 & 0xFF);
@@ -245,7 +257,7 @@ void NetworkPlugin::OnTimer() {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 
 }
 
@@ -261,7 +273,7 @@ bool NetworkPlugin::DeInit(void) {
 
 	// Stop the timer
 	oneMinuteTimer->Stop();
-	oneMinuteTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkWindow::OnTimer), NULL, this);
+	oneMinuteTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
 	delete oneMinuteTimer;
 
 	// Cleanup the critical section lock
@@ -379,25 +391,12 @@ void NetworkPlugin::OnContextMenuItemCallback(int id) {
 // Invoked by OpenCPN whenever a toolbar item is selected
 // Requires WANTS_TOOLBAR_CALLBACK
 void NetworkPlugin::OnToolbarToolCallback(int id) {
-	// Display modal Race Start Window
-	//RacingDialog *racingDialog = new RacingDialog(parentWindow);
-	//racingDialog->ShowModal();
-	//delete racingDialog;
-	//SetToolbarItemState(id, false);
-
+	// Display modal dialog
 	if (id == networkToolbar) {
-		// Display a non-modal Race Start Window
-		if (!networkDialogIsVisible) {
-			networkWindow = new NetworkWindow(parentWindow, this);
-			networkDialogIsVisible = true;
-			SetToolbarItemState(id, networkDialogIsVisible);
-			networkWindow->Show(true);
-		}
-		else {
-			networkWindow->Close();
-			delete networkWindow;
-			SetToolbarItemState(id, networkDialogIsVisible);
-		}
+		NetworkDialog *networkDialog = new NetworkDialog(parentWindow);
+		networkDialog->ShowModal();
+		delete networkDialog;
+		SetToolbarItemState(id, false);
 	}
 }
 
@@ -446,16 +445,80 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 // To simplify parsing as these are copied from twocan plugin, 
 // use an index into the "real" payload at byte 13 
 
+// PGN 60928 ISO Address Claim
+void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
+	NMEA2000Id id_60928(60928);
+	std::vector<uint8_t>payload = GetN2000Payload(id_60928, ev);
+
+	byte source = payload[7];
+
+	// Unique Identity Number 21 bits
+	networkInformation[source].deviceInformation.uniqueId = (payload[index + 0] | (payload[index + 1] << 8) | (payload[index + 2] << 16) | (payload[3] << 24)) & 0x1FFFFF;
+
+	// Manufacturer Code 11 bits
+	networkInformation[source].deviceInformation.manufacturerId = ((payload[index + 0] | (payload[index + 1] << 8) | (payload[index + 2] << 16) | (payload[index + 3] << 24)) & 0xFFE00000) >> 21;
+
+	// Not really fussed about these
+	// ISO ECU Instance 3 bits()
+	//networkInformation[source].deviceInformation.ecuInstance = (payload[index + 4] & 0xE0) >> 5;
+	// ISO Function Instance 5 bits
+	//networkInformation[source].deviceInformation.ecuFunction = payload[index + 4] & 0x1F;
+
+	// ISO Function Class 8 bits
+	networkInformation[source].deviceInformation.deviceFunction = payload[index + 5];
+
+	// Reserved 1 bit
+	//(payload[6] & 0x80) >> 7
+
+	// Device Class 7 bits
+	networkInformation[source].deviceInformation.deviceClass = payload[index + 6] & 0x7F;
+
+	// System Instance 4 bits
+	networkInformation[source].deviceInformation.deviceInstance = payload[index + 7] & 0x0F;
+
+	// Industry Group 3 bits - Marine == 4
+	networkInformation[source].deviceInformation.industryGroup = (payload[index + 7] & 0x70) >> 4;
+
+	// ISO Self Configurable 1 bit
+	networkInformation[source].deviceInformation.selfConfigure = (payload[index + 7] & 0x80) >> 7;
+
+}
+
 // PGN 126464 Supported PGN
 void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 	NMEA2000Id id_126464(126464);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126464, ev);
+
+	byte source = payload[7];
 }
 
 // PGN 126993 NMEA Heartbeat
 void NetworkPlugin::HandleN2K_126993(ObservedEvt ev) {
 	NMEA2000Id id_126993(126993);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126993, ev);
+
+	byte source = payload[7];
+
+	unsigned short timeOffset;
+	timeOffset = payload[0] | (payload[1] << 8);
+
+	byte counter;
+	counter = payload[2];
+
+	byte class1CanState;
+	class1CanState = payload[3] & 0x07;
+
+	byte class2CanState;
+	class2CanState = (payload[3] & 0x38) >> 3;
+
+	byte equipmentState;
+	equipmentState = (payload[3] & 0x40) >> 6;
+
+	// BUG BUG Remove for production once this has been tested
+#ifndef NDEBUG
+	wxLogMessage(wxString::Format("Network Plugin, Heartbeat, Source: %d, Time: %d, Count: %d, CAN 1: %d, CAN 2: %d", source, timeOffset, counter, class1CanState, class2CanState));
+#endif
+
 }
 
 // PGN 126996 Product Information
@@ -463,10 +526,96 @@ void NetworkPlugin::HandleN2K_126996(ObservedEvt ev) {
 	NMEA2000Id id_126996(126996);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126996, ev);
 
+	byte source = payload[7];
+
+	// Should divide by 100 to get the correct displayable version
+	networkInformation[source].productInformation.dataBaseVersion = payload[index + 0] | (payload[index + 1] << 8);
+
+	networkInformation[source].productInformation.productCode = payload[index + 2] | (payload[index + 3] << 8);
+
+	// Each of the following strings are up to 32 bytes long, and NOT NULL terminated.
+
+	// Model ID Bytes [4] - [35]
+	//memset(&productInformation->modelId[0], '\0', 32);
+	networkInformation[source].productInformation.modelId.Clear();
+	for (int j = 0; j < 31; j++) {
+		if (isprint(payload[index + 4 + j])) {
+			networkInformation[source].productInformation.modelId.append(1, payload[index + 4 + j]);
+		}
+	}
+
+	// Software Version Bytes [36] - [67]
+	//memset(&productInformation->softwareVersion[0], '\0', 32);
+	networkInformation[source].productInformation.softwareVersion.Clear();
+	for (int j = 0; j < 31; j++) {
+		if (isprint(payload[index + 36 + j])) {
+			networkInformation[source].productInformation.softwareVersion.append(1, payload[index + 36 + j]);
+		}
+	}
+
+	// Model Version Bytes [68] - [99]
+	//memset(&productInformation->modelVersion[0], '\0', 32);
+	networkInformation[source].productInformation.modelVersion.Clear();
+	for (int j = 0; j < 31; j++) {
+		if (isprint(payload[index + 68 + j])) {
+			networkInformation[source].productInformation.modelVersion.append(1, payload[index+ 68 + j]);
+		}
+	}
+
+	// Serial Number Bytes [100] - [131]
+	//memset(&productInformation->serialNumber[0], '\0', 32);
+	networkInformation[source].productInformation.serialNumber.Clear();
+	for (int j = 0; j < 31; j++) {
+		if (isprint(payload[index + 100 + j])) {
+			networkInformation[source].productInformation.serialNumber.append(1, payload[index + 100 + j]);
+		}
+	}
+
+	networkInformation[source].productInformation.certificationLevel = payload[index + 132];
+	networkInformation[source].productInformation.loadEquivalency = payload[133];
+
 }
 
 // PGN 126998 Configuration Information
 void NetworkPlugin::HandleN2K_126998(ObservedEvt ev) {
 	NMEA2000Id id_126998(126998);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126998, ev);
+
+	byte source = payload[7];
+	size_t variableIndex = index;
+
+	// Use an index as each string is variable length
+	unsigned int length = payload[variableIndex + 0];
+	
+	// BUG BUG What about Unicode strings. I have seen these once !!!
+
+	variableIndex++;
+	if (payload[variableIndex] == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
+		variableIndex++;
+		for (size_t i = 0; i < length - 2; i++) {
+			networkInformation[source].configurationInformation.information1.append(1, payload[variableIndex]);
+			variableIndex++;
+		}
+	}
+
+	length = payload[variableIndex];
+	variableIndex++;
+	if (payload[variableIndex] == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
+		variableIndex++;
+		for (size_t i = 0; i < length - 2; i++) {
+			networkInformation[source].configurationInformation.information2.append(1, payload[variableIndex]);
+			variableIndex++;
+		}
+	}
+
+	length = payload[variableIndex];
+	variableIndex++;
+	if (payload[index] == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
+		variableIndex++;
+		for (size_t i = 0; i < length - 2; i++) {
+			networkInformation[source].configurationInformation.information3.append(1, payload[variableIndex++]);
+			variableIndex++;
+		}
+	}
+
 }
