@@ -450,7 +450,7 @@ void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
 	NMEA2000Id id_60928(60928);
 	std::vector<uint8_t>payload = GetN2000Payload(id_60928, ev);
 
-	byte source = payload[7];
+	unsigned char source = payload[7];
 
 	// Unique Identity Number 21 bits
 	networkInformation[source].deviceInformation.uniqueId = (payload[index + 0] | (payload[index + 1] << 8) | (payload[index + 2] << 16) | (payload[3] << 24)) & 0x1FFFFF;
@@ -489,7 +489,7 @@ void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 	NMEA2000Id id_126464(126464);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126464, ev);
 
-	byte source = payload[7];
+	unsigned char source = payload[7];
 }
 
 // PGN 126993 NMEA Heartbeat
@@ -497,21 +497,21 @@ void NetworkPlugin::HandleN2K_126993(ObservedEvt ev) {
 	NMEA2000Id id_126993(126993);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126993, ev);
 
-	byte source = payload[7];
+	unsigned char source = payload[7];
 
 	unsigned short timeOffset;
 	timeOffset = payload[0] | (payload[1] << 8);
 
-	byte counter;
+	unsigned char counter;
 	counter = payload[2];
 
-	byte class1CanState;
+	unsigned char class1CanState;
 	class1CanState = payload[3] & 0x07;
 
-	byte class2CanState;
+	unsigned char class2CanState;
 	class2CanState = (payload[3] & 0x38) >> 3;
 
-	byte equipmentState;
+	unsigned char equipmentState;
 	equipmentState = (payload[3] & 0x40) >> 6;
 
 	// BUG BUG Remove for production once this has been tested
@@ -526,7 +526,7 @@ void NetworkPlugin::HandleN2K_126996(ObservedEvt ev) {
 	NMEA2000Id id_126996(126996);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126996, ev);
 
-	byte source = payload[7];
+	unsigned char source = payload[7];
 
 	// Should divide by 100 to get the correct displayable version
 	networkInformation[source].productInformation.dataBaseVersion = payload[index + 0] | (payload[index + 1] << 8);
@@ -581,7 +581,7 @@ void NetworkPlugin::HandleN2K_126998(ObservedEvt ev) {
 	NMEA2000Id id_126998(126998);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126998, ev);
 
-	byte source = payload[7];
+	unsigned char source = payload[7];
 	size_t variableIndex = index;
 
 	// Use an index as each string is variable length
