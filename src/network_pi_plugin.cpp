@@ -99,9 +99,10 @@ int NetworkPlugin::Init(void) {
 
 	for (auto const& activeDriver : activeDrivers) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
-			wxLogMessage(_T("Network Plugin, Handle: %s, Name: %s"), driver.first, driver.second);
+			wxLogMessage(_T("Network Plugin, Driver: %s, Handle: %s, Name: %s"), activeDriver, driver.first, driver.second);
 			if (driver.second == "NMEA2000") {
-				// Save the first device as a handle 
+				// Save the first device as a handle
+				// BUG BUG Should allow the user to select which interface to use
 				driverHandle = activeDriver;
 				goto exitNetwork;
 			}
@@ -113,7 +114,7 @@ exitNetwork:
 	// We only transmit PGN 59904 ISO Request
 	std::vector<int> pgnList{ 59904 };
 	CommDriverResult result;
-	// result = RegisterTXPGNs(driverHandle, pgnList);
+	result = RegisterTXPGNs(driverHandle, pgnList);
 
 	// Initialize NMEA 2000 NavMsg listeners
 
