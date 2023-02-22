@@ -507,6 +507,9 @@ void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
 	// ISO Self Configurable 1 bit
 	networkInformation[source].deviceInformation.selfConfigure = (payload[index + 7] & 0x80) >> 7;
 
+	// BUG BUG Debugging
+	wxLogMessage(_T("Debug: Source: %d, Id: %d, Manufacturer: %d"), source, networkInformation[source].deviceInformation.uniqueId, networkInformation[source].deviceInformation.manufacturerId);
+
 }
 
 // PGN 126464 Supported PGN
@@ -540,9 +543,7 @@ void NetworkPlugin::HandleN2K_126993(ObservedEvt ev) {
 	equipmentState = (payload[3] & 0x40) >> 6;
 
 	// BUG BUG Remove for production once this has been tested
-#ifndef NDEBUG
 	wxLogMessage(wxString::Format("Network Plugin, Heartbeat, Source: %d, Time: %d, Count: %d, CAN 1: %d, CAN 2: %d", source, timeOffset, counter, class1CanState, class2CanState));
-#endif
 
 }
 
@@ -599,6 +600,8 @@ void NetworkPlugin::HandleN2K_126996(ObservedEvt ev) {
 	networkInformation[source].productInformation.certificationLevel = payload[index + 132];
 	networkInformation[source].productInformation.loadEquivalency = payload[133];
 
+	// BUG BUG Debugging
+	wxLogMessage(_T("Debug Source: %d, Product Code: %d, Model Id: %s"), source, networkInformation[source].productInformation.productCode, networkInformation[source].productInformation.modelId);
 }
 
 // PGN 126998 Configuration Information

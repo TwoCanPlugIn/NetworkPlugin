@@ -54,7 +54,7 @@ void NetworkDialog::OnInit(wxInitDialogEvent& event) {
 
 	// Populate the Data Grid
 
-	for (int i = 0; i < 253; i++) {
+	for (int i = 0; i < 254; i++) {
 		// Renumber row labels to match network address 0 - 253
 		gridNetwork->SetRowLabelValue(i, std::to_string(i));
 		// No need to iterate over non-existent entries
