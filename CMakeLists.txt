@@ -135,18 +135,14 @@ SET(SRC	src/network_pi_dialog.cpp
 	src/network_pi_icons.cpp
 	src/network_pi_plugin.cpp
 	src/network_pi_toolbox.cpp
-	src/network_pi_toolboxbase.cpp
-	src/network_pi_window.cpp
-	src/network_pi_windowbase.cpp)
+	src/network_pi_toolboxbase.cpp)
 
 SET(INC	inc/network_pi_dialog.h
 	inc/network_pi_dialogbase.h
 	inc/network_pi_icons.h
 	inc/network_pi_plugin.h
 	inc/network_pi_toolbox.h
-	inc/network_pi_toolboxbase.h
-	inc/network_pi_window.h
-	inc/network_pi_windowbase.h)
+	inc/network_pi_toolboxbase.h)
 
 
 TARGET_SOURCES(${PACKAGE_NAME} PUBLIC ${SRC} )

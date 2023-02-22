@@ -38,22 +38,19 @@ NetworkToolbox::~NetworkToolbox() {
 	// Nothing to do in the destructor
 }
 
-void NetworkToolbox::OnCountdownTimerChanged(wxSpinEvent& event) {
+void NetworkToolbox::OnInterfaceSelected(wxCommandEvent& event) {
 	settingsDirty = TRUE;
 }
 
-void NetworkToolbox::OnTackingAngleChanged(wxSpinEvent& event) {
+void NetworkToolbox::OnIntervaChanged(wxSpinEvent& event) {
 	settingsDirty = TRUE;
 }
 
-void NetworkToolbox::OnWindChanged(wxCommandEvent& event) {
+void NetworkToolbox::OnHeartbeatChanged(wxCommandEvent& event) {
 	settingsDirty = TRUE;
 }
 
-void NetworkToolbox::OnHeadingChanged(wxCommandEvent& event) {
+void NetworkToolbox::OnNetworkChanged(wxCommandEvent& event) {
 	settingsDirty = TRUE;
 }
 
-void NetworkToolbox::OnLayLinesChanged(wxCommandEvent& event) {
-	settingsDirty = TRUE;
-}

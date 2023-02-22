@@ -28,19 +28,9 @@
 #include "network_pi_plugin.h"
 #include "network_pi_icons.h"
 
-// Globally accessible variables
-// Plugin Configuration
-wxFileConfig *configSettings;
-
-// Configuration Settings
-
-// Dialog visibility status, used to keep the toolbar icon state in synch
-bool networkDialogIsVisible;
-
 // Protect access to list of network devices
+// BUG BUG Used anywhere ??
 wxCriticalSection *lockNetworkData;
-
-// NMEA 2000 Device Data
 
 //  Debug spew via UDP
 wxDatagramSocket *udpSocket;
@@ -73,11 +63,21 @@ NetworkPlugin::~NetworkPlugin(void) {
 }
 
 int NetworkPlugin::Init(void) {
-	// Maintain a reference to the OpenCPN window to use as the parent for the Race Display
+	// Maintain a reference to the OpenCPN window to use as the parent for the dialog
 	parentWindow = GetOCPNCanvasWindow();
 
 	// Maintain a reference to the OpenCPN configuration object 
 	configSettings = GetOCPNConfigObject();
+
+	// Load the configuration settings
+	if (configSettings) {
+		configSettings->SetPath(_T("/PlugIns/Network"));
+		configSettings->Read(_T("Visible"), &isNetworkDialogVisible, false);
+		configSettings->Read(_T("Interval"), &heartbeatInterval, 0);
+		configSettings->Read(_T("Interface"), &interfaceName, wxEmptyString);
+		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, false);
+		configSettings->Read(_T("Request"), &sendRequest, false);
+	}
 
 	// Load toolbar icons
 	wxString shareLocn = GetPluginDataDir(PLUGIN_PACKAGE_NAME) + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
@@ -86,13 +86,11 @@ int NetworkPlugin::Init(void) {
 	wxString toggledIcon = shareLocn + _T("network-toggled.svg");
 	wxString rolloverIcon = shareLocn + _T("network-rollover.svg");
 
-	// Initialize the toolbar id's
-	networkToolbar = 0;
-	
-	// BUG BUG Update with new icons
+	// Initialize the toolbar
 	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_("Race Start Display"), _T(""), NULL, -1, 0, this);
 
-	// Setup our NMEA 2000 Network stack
+	// Setup the NMEA 2000 Network interface
+	// BUG BUG This should go into the toolbox
 	std::vector<DriverHandle> activeDrivers = GetActiveDrivers();
 
 	// Enumerate the drivers and select a NMEA 2000 network connection
@@ -111,12 +109,14 @@ int NetworkPlugin::Init(void) {
 	}
 exitNetwork:
 
+	// Need to notify Actisense NGT-1 what PGN's we transmit
 	// We only transmit PGN 59904 ISO Request
+	// Guessing that YachtDevices & socketCan ignore this (or at least NOP)
 	std::vector<int> pgnList{ 59904 };
 	CommDriverResult result;
 	//result = RegisterTXPGNs(driverHandle, pgnList);
 
-	// Initialize NMEA 2000 NavMsg listeners
+	// Initialize NMEA 2000 Listeners
 
 	// PGN 60928 ISO Address Claim
 	wxDEFINE_EVENT(EVT_N2K_60928, ObservedEvt);
@@ -159,6 +159,7 @@ exitNetwork:
 	});
 
 	// Example of adding context menu items including separators etc.
+	// BUG BUG Remove ??
 	wxMenuItem *myMenu = new wxMenuItem(NULL, wxID_HIGHEST + 1, _T("NMEA 2000"), wxEmptyString, wxITEM_NORMAL, NULL);
 	networkContextMenu = AddCanvasContextMenuItem(myMenu, this);
 
@@ -166,12 +167,11 @@ exitNetwork:
 	Connect(wxEVT_NETWORK_PLUGIN_EVENT, wxCommandEventHandler(NetworkPlugin::OnPluginEvent));
 
 	// Instantiate the dialog
-	networkDialog = new  NetworkDialog(parentWindow);
+	networkDialog = new  NetworkDialog(parentWindow, this);
 
 	// Load our dialog into the AUI Manager
 	paneInfo.Name(_T("Network Plugin"));
 	paneInfo.Caption("NMEA 2000 Network");
-	// BUG BUG Set the icon
 	paneInfo.Float();
 	paneInfo.Hide();
 	paneInfo.Dockable(false);
@@ -180,19 +180,20 @@ exitNetwork:
 
 	// BUG BUG Superfluous
 	if (paneInfo.IsShown()) {
-		networkDialogIsVisible = true;
+		isNetworkDialogVisible = true;
 	}
 	else {
-		networkDialogIsVisible = false;
+		isNetworkDialogVisible = false;
 	}
 
 	// Synchronize toolbar status
-	SetToolbarItemState(networkToolbar, networkDialogIsVisible);
+	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 	
 	// Toolbox pane
 	toolboxPanel = nullptr;
 
 	// Protect against reading the network list being updaed
+	// BUG BUG Used anywhere
 	lockNetworkData = new wxCriticalSection();
 	
 	// BUG BUG Investigating some different API's
@@ -218,14 +219,17 @@ exitNetwork:
 	}
 
 	// Start a timer to transmit NMEA 2000 network queries
-	oneMinuteTimer = new wxTimer();
-	oneMinuteTimer->Connect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
-	oneMinuteTimer->Start(60000);
+	if (sendHeartbeat) {
+		heartbeatTimer = new wxTimer();
+		heartbeatTimer->Connect(heartbeatTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
+		heartbeatTimer->Start(heartbeatInterval * 60000);
+	}
 
 	// Notify OpenCPN of our capabilities and what events we want to receive callbacks for
 	return (WANTS_CONFIG | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | INSTALLS_CONTEXTMENU_ITEMS | WANTS_CURSOR_LATLON | WANTS_OVERLAY_CALLBACK | INSTALLS_TOOLBOX_PAGE | WANTS_NMEA_EVENTS | WANTS_NMEA_SENTENCES | WANTS_AIS_SENTENCES | WANTS_LATE_INIT | WANTS_PLUGIN_MESSAGING);
 }
 
+// Timer sends heartbeat and network request PGN's
 void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	wxLogMessage(_T("Network Plugin - On Timer"));
@@ -263,8 +267,8 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 }
 
 void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
-	networkDialogIsVisible = false;
-	SetToolbarItemState(networkToolbar, networkDialogIsVisible);
+	isNetworkDialogVisible = false;
+	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 }
 
 // OpenCPN is either closing down, or has been disabled from the Preferences Dialog
@@ -272,10 +276,22 @@ bool NetworkPlugin::DeInit(void) {
 	// Cleanup Dialog Event Handler
 	Disconnect(wxEVT_NETWORK_PLUGIN_EVENT, wxCommandEventHandler(NetworkPlugin::OnPluginEvent));
 
+	// Save configuration settings
+	if (configSettings) {
+		configSettings->SetPath(_T("/PlugIns/Network"));
+		configSettings->Write(_T("Visible"), isNetworkDialogVisible);
+		configSettings->Write(_T("Interval"), heartbeatInterval);
+		configSettings->Write(_T("Interface"), interfaceName);
+		configSettings->Write(_T("Heartbeat"), sendHeartbeat);
+		configSettings->Write(_T("Request"), sendRequest);
+	}
+
 	// Stop the timer
-	oneMinuteTimer->Stop();
-	oneMinuteTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
-	delete oneMinuteTimer;
+	if (sendHeartbeat) {
+		heartbeatTimer->Stop();
+		heartbeatTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
+		delete heartbeatTimer;
+	}
 
 	// Cleanup the critical section lock
 	delete lockNetworkData;
@@ -293,8 +309,8 @@ bool NetworkPlugin::DeInit(void) {
 
 void NetworkPlugin::UpdateAuiStatus(void) {
 	if ((paneInfo.IsOk()) && (paneInfo.IsShown())) {
-		networkDialogIsVisible = true;
-		SetToolbarItemState(networkToolbar, networkDialogIsVisible);
+		isNetworkDialogVisible = true;
+		SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 	}
 }
 
@@ -362,7 +378,15 @@ void NetworkPlugin::SetupToolboxPanel(int page_sel, wxNotebook* pnotebook) {
 void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 	wxMessageBox(wxString::Format(_T("OnCloseToolbox: %d"), ok_apply_cancel));
 	if ((ok_apply_cancel == 0) || (ok_apply_cancel == 4) && (settingsDirty == TRUE)) {
-			// Save the setttings
+		// Save the setttings
+		if (configSettings) {
+			configSettings->SetPath(_T("/PlugIns/Network"));
+			configSettings->Write(_T("Visible"), isNetworkDialogVisible);
+			configSettings->Write(_T("Interval"), heartbeatInterval);
+			configSettings->Write(_T("Interface"), interfaceName);
+			configSettings->Write(_T("Heartbeat"), sendHeartbeat);
+			configSettings->Write(_T("Request"), sendRequest);
+		}
 	}
 	delete toolboxPanel;
 	toolboxPanel = nullptr;
@@ -392,28 +416,28 @@ void NetworkPlugin::OnContextMenuItemCallback(int id) {
 // Invoked by OpenCPN whenever a toolbar item is selected
 // Requires WANTS_TOOLBAR_CALLBACK
 void NetworkPlugin::OnToolbarToolCallback(int id) {
-	// Display modal dialog
+	// Toggles the display of the network dialog
 	if (id == networkToolbar) {
-		NetworkDialog *networkDialog = new NetworkDialog(parentWindow);
-		networkDialog->ShowModal();
-		delete networkDialog;
-		SetToolbarItemState(id, false);
+		isNetworkDialogVisible = !isNetworkDialogVisible;
+		auiManager->GetPane(_T("Network Plugin")).Show(isNetworkDialogVisible);
+		auiManager->Update();
+		SetToolbarItemState(id, isNetworkDialogVisible);
 	}
 }
 
 // Handle events from the dialog
+// BUG BUG Any events to handle ??
 void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 	switch (event.GetId()) {
 		case NETWORKDIALOG_OPEN_EVENT:
 			// Synchronises the state of the toolbar icon
-			SetToolbarItemState(networkToolbar, networkDialogIsVisible);
+			SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 			break;
 		case NETWORKDIALOG_CLOSE_EVENT:
 			// Synchronises the state of the toolbar icon
-			SetToolbarItemState(networkToolbar, networkDialogIsVisible);
+			SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 			break;
 		case NETWORKDIALOG_PING_EVENT:
-			lockNetworkData->Leave();
 			break;
 		default:
 			event.Skip();

@@ -38,7 +38,7 @@ extern const int NETWORKDIALOG_OPEN_EVENT;
 extern const int NETWORKDIALOG_PING_EVENT;
 extern const wxEventType wxEVT_NETWORK_PLUGIN_EVENT;
 
-extern bool networkWindowIsVisible;
+extern bool isNetworkDialogVisible;
 
 class NetworkWindow : public NetworkWindowBase {
 	

@@ -9,15 +9,10 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
 {
-	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
-
-	wxBoxSizer* sizerDialog;
-	sizerDialog = new wxBoxSizer( wxVERTICAL );
-
-	wxBoxSizer* sizerTabs;
-	sizerTabs = new wxBoxSizer( wxVERTICAL );
+	wxBoxSizer* sizerPanel;
+	sizerPanel = new wxBoxSizer( wxVERTICAL );
 
 	gridNetwork = new wxGrid( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 
@@ -49,41 +44,23 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxS
 
 	// Cell Defaults
 	gridNetwork->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
-	sizerTabs->Add( gridNetwork, 0, wxALL, 5 );
+	sizerPanel->Add( gridNetwork, 0, wxALL, 5 );
 
 
-	sizerDialog->Add( sizerTabs, 0, wxEXPAND, 5 );
-
-	wxBoxSizer* sizerButtons;
-	sizerButtons = new wxBoxSizer( wxHORIZONTAL );
-
-	btnCancel = new wxButton( this, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerButtons->Add( btnCancel, 0, wxALL, 5 );
-
-	btnOK = new wxButton( this, wxID_ANY, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerButtons->Add( btnOK, 0, wxALL, 5 );
-
-
-	sizerDialog->Add( sizerButtons, 0, wxEXPAND, 5 );
-
-
-	this->SetSizer( sizerDialog );
+	this->SetSizer( sizerPanel );
 	this->Layout();
-	sizerDialog->Fit( this );
-
-	this->Centre( wxBOTH );
 
 	// Connect Events
-	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
-	btnCancel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnCancel ), NULL, this );
-	btnOK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnOk ), NULL, this );
+	this->Connect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialogBase::OnClose ) );
+	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler(NetworkDialogBase::OnInit ) );
+	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler(NetworkDialogBase::OnRightClick ), NULL, this );
 }
 
 NetworkDialogBase::~NetworkDialogBase()
 {
 	// Disconnect Events
-	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
-	btnCancel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnCancel ), NULL, this );
-	btnOK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnOk ), NULL, this );
+	this->Disconnect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialogBase::OnClose ) );
+	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler(NetworkDialogBase::OnInit ) );
+	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler(NetworkDialogBase::OnRightClick ), NULL, this );
 
 }

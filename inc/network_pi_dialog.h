@@ -34,6 +34,45 @@
 
 #include <wx/log.h>
 
+// Typedefs
+// NMEA 2000 Product Information, transmitted in PGN 126996 NMEA Product Information
+typedef struct ProductInformation {
+	unsigned int dataBaseVersion;
+	unsigned int productCode;
+	wxString modelId;
+	wxString softwareVersion;
+	wxString modelVersion;
+	wxString serialNumber;
+	unsigned char certificationLevel;
+	unsigned char loadEquivalency;
+} ProductInformation;
+
+// NMEA 2000 Device Information, transmitted in PGN 60928 ISO Address Claim
+typedef struct DeviceInformation {
+	unsigned long uniqueId;
+	unsigned int deviceClass;
+	unsigned int deviceFunction;
+	unsigned char deviceInstance;
+	unsigned char industryGroup;
+	unsigned int manufacturerId;
+	unsigned char selfConfigure;
+} DeviceInformation;
+
+typedef struct ConfigurationInformation {
+	wxString information1;
+	wxString information2;
+	wxString information3;
+} ConfigurationInformation;
+
+// Used  to store the data for the Network Map, combines elements from address claim & product information
+typedef struct NetworkInformation {
+	DeviceInformation deviceInformation;
+	ProductInformation productInformation;
+	ConfigurationInformation configurationInformation;
+	wxDateTime timestamp; // Updated upon reception of heartbeat or address claim. Used to determine stale entries
+} NetworkInformation;
+
+
 // image for dialog icon
 extern wxBitmap *_img_network_colour;
 
@@ -42,33 +81,29 @@ extern const int NETWORKDIALOG_OPEN_EVENT;
 extern const int NETWORKDIALOG_CLOSE_EVENT;
 extern const int NETWORKDIALOG_PING_EVENT;
 
+// Array of network devices & their product and device information
+extern NetworkInformation networkInformation[253];
+
+// Whether the Dialog is displayed, used to keep toolbar in synch
+extern bool isNetworkDialogVisible;
+
 class NetworkDialog : public NetworkDialogBase {
 	
 public:
-	NetworkDialog(wxWindow* parent);
+	NetworkDialog(wxWindow* parent, wxEvtHandler *handler);
 	~NetworkDialog();
-	// wxTimer used to update network view 
-	wxTimer *oneMinuteTimer;
-	void OnTimer(wxTimerEvent& event);
 	
 protected:
 	//overridden methods from the base class
 	void OnInit(wxInitDialogEvent& event);
 	void OnClose(wxCloseEvent& event);
-	void OnPing(wxCommandEvent &event);
-	void OnCancel(wxCommandEvent &event);
 	void OnRightClick(wxCommandEvent &event);
 	
 private:
-	void ResetTimer(void);
-	// System Uptime ??
-	int totalSeconds;
-	int seconds;
-	int minutes;
-	
 	// Parent Windows Size
 	int parentWidth;
 	int parentHeight;
+	wxEvtHandler *eventHandler;
 };
 
 #endif

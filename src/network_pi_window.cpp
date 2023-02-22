@@ -85,7 +85,7 @@ void NetworkWindow::OnClose(wxCloseEvent& event) {
 	}
 
 	// Notify the parent we have closed, so that it can update its toolbar state
-	networkWindowIsVisible = false;
+	isNetworkDialogVisible = false;
 
 	wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
 	wxQueueEvent(eventHandlerAddress, closeEvent);

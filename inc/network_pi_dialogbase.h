@@ -16,36 +16,31 @@
 #include <wx/grid.h>
 #include <wx/gdicmn.h>
 #include <wx/sizer.h>
-#include <wx/bitmap.h>
-#include <wx/image.h>
-#include <wx/icon.h>
-#include <wx/button.h>
-#include <wx/dialog.h>
+#include <wx/panel.h>
+#include <wx/aui/aui.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Class NetworkDialogBase
+/// Class panelNetwork
 ///////////////////////////////////////////////////////////////////////////////
-class NetworkDialogBase : public wxDialog
+class NetworkDialogBase : public wxPanel
 {
 	private:
 
 	protected:
 		wxGrid* gridNetwork;
-		wxButton* btnCancel;
-		wxButton* btnOK;
 
 		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxAuiManagerEvent& event ) { event.Skip(); }
+		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void OnRightClick( wxGridEvent& event ) { event.Skip(); }
-		virtual void OnCancel( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnOk( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:
 
-		NetworkDialogBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("NMEA 2000 Network"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE );
+		NetworkDialogBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 		~NetworkDialogBase();
 
 };

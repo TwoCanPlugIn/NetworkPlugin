@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Jan 23 2018)
+// C++ code generated with wxFormBuilder (version Oct 26 2018)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -9,53 +9,48 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) : wxPanel( parent, id, pos, size, style )
+NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
 {
-	wxBoxSizer* bSizer1;
-	bSizer1 = new wxBoxSizer( wxVERTICAL );
-	
-	labelCountdownTimer = new wxStaticText( this, wxID_ANY, wxT("Countdown Time (minutes)"), wxDefaultPosition, wxDefaultSize, 0 );
-	labelCountdownTimer->Wrap( -1 );
-	bSizer1->Add( labelCountdownTimer, 0, wxALL, 5 );
-	
-	spinCountdownTimer = new wxSpinCtrl( this, wxID_ANY, wxT("5"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 20, 0 );
-	bSizer1->Add( spinCountdownTimer, 0, wxALL, 5 );
-	
-	labelTackingAngle = new wxStaticText( this, wxID_ANY, wxT("Tacking Angle (degrees)"), wxDefaultPosition, wxDefaultSize, 0 );
-	labelTackingAngle->Wrap( -1 );
-	bSizer1->Add( labelTackingAngle, 0, wxALL, 5 );
-	
-	spinTackingAngle = new wxSpinCtrl( this, wxID_ANY, wxT("90"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 60, 180, 0 );
-	bSizer1->Add( spinTackingAngle, 0, wxALL, 5 );
-	
-	chkWind = new wxCheckBox( this, wxID_ANY, wxT("Show Wind Direction"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer1->Add( chkWind, 0, wxALL, 5 );
-	
-	chkHeading = new wxCheckBox( this, wxID_ANY, wxT("Show Heading"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer1->Add( chkHeading, 0, wxALL, 5 );
-	
-	chkLayLines = new wxCheckBox( this, wxID_ANY, wxT("Show Lay Lines"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer1->Add( chkLayLines, 0, wxALL, 5 );
-	
-	
-	this->SetSizer( bSizer1 );
+	wxBoxSizer* sizerPanel;
+	sizerPanel = new wxBoxSizer( wxVERTICAL );
+
+	labelInterface = new wxStaticText( this, wxID_ANY, wxT("NMEA 2000 Interface"), wxDefaultPosition, wxDefaultSize, 0 );
+	labelInterface->Wrap( -1 );
+	sizerPanel->Add( labelInterface, 0, wxALL, 5 );
+
+	cmbInterfce = new wxComboBox( this, wxID_ANY, wxT("Combo!"), wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
+	sizerPanel->Add( cmbInterfce, 0, wxALL, 5 );
+
+	labelHeartbeat = new wxStaticText( this, wxID_ANY, wxT("Heartbeat Interval"), wxDefaultPosition, wxDefaultSize, 0 );
+	labelHeartbeat->Wrap( -1 );
+	sizerPanel->Add( labelHeartbeat, 0, wxALL, 5 );
+
+	spinInterval = new wxSpinCtrl( this, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 5, 1 );
+	sizerPanel->Add( spinInterval, 0, wxALL, 5 );
+
+	chkHeartbeat = new wxCheckBox( this, wxID_ANY, wxT("Send Heartbeats"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerPanel->Add( chkHeartbeat, 0, wxALL, 5 );
+
+	chkNetwork = new wxCheckBox( this, wxID_ANY, wxT("Request Network Information"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerPanel->Add( chkNetwork, 0, wxALL, 5 );
+
+
+	this->SetSizer( sizerPanel );
 	this->Layout();
-	
+
 	// Connect Events
-	spinCountdownTimer->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(NetworkToolboxBase::OnCountdownTimerChanged), NULL, this);
-	spinTackingAngle->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(NetworkToolboxBase::OnTackingAngleChanged), NULL, this);
-	chkWind->Connect(wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(NetworkToolboxBase::OnWindChanged), NULL, this);
-	chkHeading->Connect(wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(NetworkToolboxBase::OnHeadingChanged), NULL, this);
-	chkLayLines->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnLayLinesChanged ), NULL, this );
+	cmbInterfce->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
+	spinInterval->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
+	chkHeartbeat->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
+	chkNetwork->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
 }
 
 NetworkToolboxBase::~NetworkToolboxBase()
 {
 	// Disconnect Events
-	spinCountdownTimer->Disconnect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(NetworkToolboxBase::OnCountdownTimerChanged), NULL, this);
-	spinTackingAngle->Disconnect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(NetworkToolboxBase::OnTackingAngleChanged), NULL, this);
-	chkWind->Disconnect(wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(NetworkToolboxBase::OnWindChanged), NULL, this);
-	chkHeading->Disconnect(wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(NetworkToolboxBase::OnHeadingChanged), NULL, this);
-	chkLayLines->Disconnect(wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(NetworkToolboxBase::OnLayLinesChanged), NULL, this);
-	
+	cmbInterfce->Disconnect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
+	spinInterval->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
+	chkHeartbeat->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
+	chkNetwork->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
+
 }

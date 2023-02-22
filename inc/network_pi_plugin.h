@@ -46,12 +46,10 @@
 // OpenCPN include file
 #include "ocpn_plugin.h"
 
-// NMEA 2000 Network dialog modal window
+// NMEA 2000 Network 
 #include "network_pi_dialog.h"
-// or a non modal version
-//#include "network_pi_window.h"
 
-// OCPN Toolbox Panel used for configuration settings
+// Open CPN Toolbox Panel used for configuration settings
 #include "network_pi_toolbox.h"
 
 // Plugin receives events from the NMEA 2000 Network dialog
@@ -60,48 +58,31 @@ const int NETWORKDIALOG_OPEN_EVENT = wxID_HIGHEST + 1;
 const int NETWORKDIALOG_CLOSE_EVENT = wxID_HIGHEST + 2;
 const int NETWORKDIALOG_PING_EVENT = wxID_HIGHEST + 3;
 
-// NMEA 2000 Product Information, transmitted in PGN 126996 NMEA Product Information
-typedef struct ProductInformation {
-	unsigned int dataBaseVersion;
-	unsigned int productCode;
-	wxString modelId;
-	wxString softwareVersion;
-	wxString modelVersion;
-	wxString serialNumber;
-	unsigned char certificationLevel;
-	unsigned char loadEquivalency;
-} ProductInformation;
+// Globally accessible variables
 
-// NMEA 2000 Device Information, transmitted in PGN 60928 ISO Address Claim
-typedef struct DeviceInformation {
-	unsigned long uniqueId;
-	unsigned int deviceClass;
-	unsigned int deviceFunction;
-	unsigned char deviceInstance;
-	unsigned char industryGroup;
-	unsigned int manufacturerId;
-	unsigned char selfConfigure;
-} DeviceInformation;
+// Array of network devices & their product and device information
+NetworkInformation networkInformation[253];
 
-typedef struct ConfigurationInformation {
-	wxString information1;
-	wxString information2;
-	wxString information3;
-} ConfigurationInformation;
+// Plugin Configuration
+wxFileConfig *configSettings;
 
-// Used  to store the data for the Network Map, combines elements from address claim & product information
-typedef struct NetworkInformation {
-	DeviceInformation deviceInformation;
-	ProductInformation productInformation;
-	ConfigurationInformation configurationInformation;
-	wxDateTime timestamp; // Updated upon reception of heartbeat or address claim. Used to determine stale entries
-} NetworkInformation;
+// Dialog visibility status, used to keep the toolbar icon state in synch
+bool isNetworkDialogVisible;
 
 // Flag used to indicate if any settings have been changed
 bool settingsDirty;
 
-// Whether the dialog is displayed
-bool networkWindowIsVisible;
+// Frequency for sending heartbeat & network requests
+int heartbeatInterval;
+
+// Whether to send PGN 126233 Hearbeats
+bool sendHeartbeat;
+
+// Whether to request PGN 126996, 126998
+bool sendRequest;
+
+// The NMEA 2000 interface
+wxString interfaceName;
 
 // The Network plugin
 class NetworkPlugin : public opencpn_plugin_118, public wxEvtHandler {
@@ -135,18 +116,14 @@ public:
 	void OnCloseToolboxPanel(int page_sel, int ok_apply_cancel);
 	void UpdateAuiStatus(void);
 	void OnPaneClose(wxAuiManagerEvent& event);
-
 	void LateInit(void);
 
 	// Event Handler
 	void OnPluginEvent(wxCommandEvent &event);
 		
-private: 
-	// Network Plugin modal dialog
+private:
+	// Grid Display of NNMEA 2000 Network Devices
 	NetworkDialog *networkDialog;
-	// or
-	// Network Plugin modeless dialog
-	//NetworkWindow *networkWindow;
 
 	// Plugin bitmap
 	wxBitmap pluginBitmap;
@@ -167,7 +144,7 @@ private:
 	NetworkToolbox *toolboxPanel;
 
 	// Timer & Timer Events
-	wxTimer *oneMinuteTimer;
+	wxTimer *heartbeatTimer;
 	void OnTimer(wxTimerEvent &event);
 
 	// NMEA 2000
@@ -197,9 +174,6 @@ private:
 	// NMEA Configuration Information
 	void HandleN2K_126998(ObservedEvt ev);
 	std::shared_ptr<ObservableListener> listener_126998;
-
-	// Array of network devices & their product and device information
-	NetworkInformation networkInformation[253];
 
 };
 

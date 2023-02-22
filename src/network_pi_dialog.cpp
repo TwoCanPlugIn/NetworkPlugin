@@ -29,16 +29,10 @@
 #include "network_pi_dialog.h"
 
 // Constructor and destructor implementation
-NetworkDialog::NetworkDialog(wxWindow* parent) : NetworkDialogBase(parent) {
-
-	// Set the dialog's icon
-	wxIcon icon;
-	icon.CopyFromBitmap(*_img_network_colour);
-	SetIcon(icon);
-	parent->GetSize(&parentWidth, &parentHeight);
+NetworkDialog::NetworkDialog(wxWindow* parent, wxEvtHandler *handler) : NetworkDialogBase(parent) {
 
 	// Maintain a reference to the parent event handler
-	//eventHandlerAddress = handler;
+	eventHandler = handler;
 }
 
 NetworkDialog::~NetworkDialog() {
@@ -47,67 +41,54 @@ NetworkDialog::~NetworkDialog() {
 
 void NetworkDialog::OnInit(wxInitDialogEvent& event) {
 	// Ensure the dialog is sized correctly	
+	wxSize newSize = this->GetSize();
+	gridNetwork->SetMinSize(wxSize(512, 20 * gridNetwork->GetDefaultRowSize()));
+	gridNetwork->SetMaxSize(wxSize(-1, 20 * gridNetwork->GetDefaultRowSize()));
 	Fit();
 
-	// And move to bottom right of the screen
-	int dialogWidth;
-	int dialogHeight;
-	this->GetSize(&dialogWidth, &dialogHeight);
-	this->SetPosition(wxPoint(parentWidth - dialogWidth, parentHeight - dialogHeight));
+	// After we've fitted in everything adjust the dataGrid column widths
+	int colWidth = (int)((gridNetwork->GetSize().GetWidth() - gridNetwork->GetRowLabelSize() - wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, NULL)) / 3);
+	gridNetwork->SetColSize(0, colWidth);
+	gridNetwork->SetColSize(1, colWidth);
+	gridNetwork->SetColSize(2, colWidth);
 
-	// Initialize the timer
-	oneMinuteTimer = new wxTimer();
-	oneMinuteTimer->Connect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkDialog::OnTimer), NULL, this);
-	//ResetTimer();
+	// Populate the Data Grid
+
+	for (int i = 0; i < 253; i++) {
+		// Renumber row labels to match network address 0 - 253
+		gridNetwork->SetRowLabelValue(i, std::to_string(i));
+		// No need to iterate over non-existent entries
+		if ((networkInformation[i].deviceInformation.uniqueId > 0) || (strlen(networkInformation[i].productInformation.modelId) > 0) ) {
+			gridNetwork->SetCellValue(i, 0, wxString::Format("%lu", networkInformation[i].deviceInformation.uniqueId));
+			// Look up the manufacturer name
+			//std::unordered_map<int, std::string>::iterator it = deviceManufacturers.find(networkInfoirmation[i].manufacturerId);
+			//if (it != deviceManufacturers.end()) {
+			//	gridNetwork->SetCellValue(i, 1, it->second);
+			//}
+			//else {
+				gridNetwork->SetCellValue(i, 1, wxString::Format("%d", networkInformation[i].deviceInformation.manufacturerId));
+			//}
+			gridNetwork->SetCellValue(i, 2, wxString::Format("%s", networkInformation[i].productInformation.modelId));
+			// We don't receive our own heartbeats so ignore our time stamp value
+			//if (networkInformation[i].uniqueId != uniqueId) {
+			wxGridCellAttr *attr;
+			attr = new wxGridCellAttr;
+			// Differentiate dead/alive devices
+			attr->SetTextColour((wxDateTime::Now() > (networkInformation[i].timestamp + wxTimeSpan::Seconds(60))) ? *wxRED : *wxGREEN);
+			gridNetwork->SetAttr(i, 0, attr);
+			//}
+		}
+	}
 
 }
 
 void NetworkDialog::OnClose(wxCloseEvent& event) {
 
-	oneMinuteTimer->Disconnect(oneMinuteTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkDialog::OnTimer));
-
-	if (oneMinuteTimer != nullptr) {
-		delete oneMinuteTimer;
-	}
-
 	// Notify the parent we have closed, so that it can update its toolbar state
-	//networkWindowIsVisible = false;
+	isNetworkDialogVisible = false;
 
-	//wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
-	//wxQueueEvent(eventHandlerAddress, closeEvent);
+	wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
+	wxQueueEvent(eventHandler, closeEvent);
 
 	event.Skip();
 }
-
-
-void NetworkDialog::OnTimer(wxTimerEvent& event) {
-	// Update the countdown timer
-	totalSeconds -= 1;
-
-	minutes = trunc(totalSeconds / 60);
-	seconds = totalSeconds - (minutes * 60);
-
-	// Display the count down timer
-	//labelTimer->SetLabel(wxString::Format("%1d:%02d", minutes, seconds));
-
-}
-
-void NetworkDialog::OnPing(wxCommandEvent &event) {
-	// Notify Parent
-	//wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_PING_EVENT);
-	//wxQueueEvent(eventHandlerAddress, closeEvent);
-}
-
-void NetworkDialog::OnCancel(wxCommandEvent &event) {
-	this->Close();
-}
-
-void NetworkDialog::ResetTimer(void) {
-	// Reset the timer
-	totalSeconds = 300;
-	minutes = trunc(totalSeconds / 60);
-	seconds = totalSeconds - (minutes * 60);
-	//labelTimer->SetLabel(wxString::Format("%1d:%02d", minutes, seconds));
-}
-
-

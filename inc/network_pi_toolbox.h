@@ -43,11 +43,11 @@ public:
 	
 protected:
 	// Overridden methods from the base class
-	void OnCountdownTimerChanged(wxSpinEvent& event);
-	void OnTackingAngleChanged(wxSpinEvent& event);
-	void OnWindChanged(wxCommandEvent& event);
-	void OnHeadingChanged(wxCommandEvent& event);
-	void OnLayLinesChanged(wxCommandEvent& event);
+	void OnInterfaceSelected(wxCommandEvent& event);
+	void OnIntervaChanged(wxSpinEvent& event);
+	void OnHeartbeatChanged(wxCommandEvent& event);
+	void OnNetworkChanged(wxCommandEvent& event);
+
 private:
 	
 };
