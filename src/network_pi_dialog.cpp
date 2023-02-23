@@ -56,7 +56,7 @@ NetworkDialog::~NetworkDialog() {
 	// Nothing to do in the destructor
 }
 
-void NetworkDialog::OnInit(wxAuiManagerEvent& event) {
+void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
 	wxMessageBox("AUI Actiate, OnInit");
 
 	// Populate the Data Grid
@@ -84,16 +84,20 @@ void NetworkDialog::OnInit(wxAuiManagerEvent& event) {
 			//}
 		}
 	}
-
+	event.Skip();
 }
 
 void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
 
 	// Notify the parent we have closed, so that it can update its toolbar state
-	isNetworkDialogVisible = false;
+	isNetworkDialogVisible = FALSE;
 
 	wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
 	wxQueueEvent(eventHandler, closeEvent);
 
 	event.Skip();
+}
+
+void NetworkDialog::OnRightClick(wxCommandEvent &event) {
+	wxMessageBox(wxString::Format("Selected: %d", event.GetSelection()));
 }

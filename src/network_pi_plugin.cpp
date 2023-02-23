@@ -72,11 +72,11 @@ int NetworkPlugin::Init(void) {
 	// Load the configuration settings
 	if (configSettings) {
 		configSettings->SetPath(_T("/PlugIns/Network"));
-		configSettings->Read(_T("Visible"), &isNetworkDialogVisible, false);
+		configSettings->Read(_T("Visible"), &isNetworkDialogVisible, FALSE);
 		configSettings->Read(_T("Interval"), &heartbeatInterval, 0);
 		configSettings->Read(_T("Interface"), &interfaceName, wxEmptyString);
-		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, false);
-		configSettings->Read(_T("Request"), &sendRequest, false);
+		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, FALSE);
+		configSettings->Read(_T("Request"), &sendRequest, FALSE);
 	}
 
 	// Load toolbar icons
@@ -174,17 +174,20 @@ exitNetwork:
 	paneInfo.Caption("NMEA 2000 Network");
 	paneInfo.Float();
 	paneInfo.Hide();
-	paneInfo.Dockable(false);
+	paneInfo.Dockable(FALSE);
 	auiManager->AddPane(networkDialog, paneInfo);
 	auiManager->Update();
 
 	// BUG BUG Superfluous
 	if (paneInfo.IsShown()) {
-		isNetworkDialogVisible = true;
+		isNetworkDialogVisible = TRUE;
 	}
 	else {
-		isNetworkDialogVisible = false;
+		isNetworkDialogVisible = FALSE;
 	}
+	//if (isNetworkDialogVisible) {
+	//	paneInfo.Show();
+	//}
 
 	// Synchronize toolbar status
 	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
@@ -206,7 +209,7 @@ exitNetwork:
 	wxLogMessage(_T("*** Private App: %s"), *GetpPrivateApplicationDataLocation());
 	wxLogMessage(_T("*** Doc Path: %s"), GetWritableDocumentsDir());
 	wxLogMessage(_T("*** Toolbox: %d"), GetToolboxPanelCount());
-	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("Network Plugin"));
+	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("network_pi")); // Doesn't Work "Network Plugin"));
 
 	// Initialize Debug Spew via UDP
 	addrLocal.Hostname();
@@ -267,7 +270,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 }
 
 void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
-	isNetworkDialogVisible = false;
+	isNetworkDialogVisible = FALSE;
 	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 }
 
@@ -294,6 +297,7 @@ bool NetworkPlugin::DeInit(void) {
 	}
 
 	// Cleanup the critical section lock
+	// BUG BUG Used anywhere ??
 	delete lockNetworkData;
 
 	// Cleanup Debug Spew
@@ -309,12 +313,13 @@ bool NetworkPlugin::DeInit(void) {
 
 void NetworkPlugin::UpdateAuiStatus(void) {
 	if ((paneInfo.IsOk()) && (paneInfo.IsShown())) {
-		isNetworkDialogVisible = true;
+		isNetworkDialogVisible = TRUE;
 		SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 	}
 }
 
 void NetworkPlugin::LateInit(void) {
+	// BUG BUG Can be removed
 	std::string foobar = "Late Init";
 	udpSocket->SendTo(addrPeer, foobar.data(), foobar.length());
 }
@@ -347,7 +352,7 @@ wxString NetworkPlugin::GetShortDescription() {
 }
 
 wxString NetworkPlugin::GetLongDescription() {
-	return _T("Network Plugin, Displays NMEA 2000 Network");
+	return _T("Network Plugin, Displays information about the devices on the NMEA 2000 Network");
 }
 
 // 32x32 pixel image displayed in the Toolbox Plugins page
@@ -406,9 +411,9 @@ void NetworkPlugin::SetDefaults(void) {
 
 // Invoked whenever a context menu item is selected
 // Requires INSTALLS_CONTEXTMENU_ITEMS
+// BUG BUG Remove as not useful
 void NetworkPlugin::OnContextMenuItemCallback(int id) {
 	if (id == networkContextMenu) {	
-		// BUG BUG Meaningless
 		wxMessageBox(wxString::Format(_T("Chart Tilt: %f"), GetCanvasTilt()));
 	}
 }
