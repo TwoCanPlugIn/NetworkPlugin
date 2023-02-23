@@ -96,7 +96,7 @@ public:
 protected:
 	//overridden methods from the base class
 	void OnInit(wxAuiManagerEvent& event);
-	void OnClose(wxCloseEvent& event);
+	void OnClose(wxAuiManagerEvent& event);
 	void OnRightClick(wxCommandEvent &event);
 	
 private:

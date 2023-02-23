@@ -87,7 +87,7 @@ int NetworkPlugin::Init(void) {
 	wxString rolloverIcon = shareLocn + _T("network-rollover.svg");
 
 	// Initialize the toolbar
-	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_("Race Start Display"), _T(""), NULL, -1, 0, this);
+	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_("NMEA 2000 Network"), _T("Display devices on NMEA 2000 Network"), NULL, -1, 0, this);
 
 	// Setup the NMEA 2000 Network interface
 	// BUG BUG This should go into the toolbox
@@ -376,8 +376,8 @@ void NetworkPlugin::SetupToolboxPanel(int page_sel, wxNotebook* pnotebook) {
 // Invoked when the OpenCPN Toolbox OK, Apply or Cancel buttons are pressed
 // Requires INSTALLS_TOOLBOX_PAGE
 void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
-	wxMessageBox(wxString::Format(_T("OnCloseToolbox: %d"), ok_apply_cancel));
-	if ((ok_apply_cancel == 0) || (ok_apply_cancel == 4) && (settingsDirty == TRUE)) {
+	// 16 = Cancel, 0 = OK, 4 = Apply
+	if (((ok_apply_cancel == 0) || (ok_apply_cancel == 4)) && (settingsDirty == TRUE)) {
 		// Save the setttings
 		if (configSettings) {
 			configSettings->SetPath(_T("/PlugIns/Network"));

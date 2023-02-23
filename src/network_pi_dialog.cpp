@@ -33,14 +33,6 @@ NetworkDialog::NetworkDialog(wxWindow* parent, wxEvtHandler *handler) : NetworkD
 
 	// Maintain a reference to the parent event handler
 	eventHandler = handler;
-}
-
-NetworkDialog::~NetworkDialog() {
-	// Nothing to do in the destructor
-}
-
-void NetworkDialog::OnInit(wxAuiManagerEvent& event) {
-	wxMessageBox("On Init");
 
 	// Ensure the dialog is sized correctly	
 	wxSize newSize = this->GetSize();
@@ -54,11 +46,22 @@ void NetworkDialog::OnInit(wxAuiManagerEvent& event) {
 	gridNetwork->SetColSize(1, colWidth);
 	gridNetwork->SetColSize(2, colWidth);
 
-	// Populate the Data Grid
-
 	for (int i = 0; i < 254; i++) {
 		// Renumber row labels to match network address 0 - 253
 		gridNetwork->SetRowLabelValue(i, std::to_string(i));
+	}
+}
+
+NetworkDialog::~NetworkDialog() {
+	// Nothing to do in the destructor
+}
+
+void NetworkDialog::OnInit(wxAuiManagerEvent& event) {
+	wxMessageBox("AUI Actiate, OnInit");
+
+	// Populate the Data Grid
+
+	for (int i = 0; i < 254; i++) {
 		// No need to iterate over non-existent entries
 		if ((networkInformation[i].deviceInformation.uniqueId > 0) || (strlen(networkInformation[i].productInformation.modelId) > 0) ) {
 			gridNetwork->SetCellValue(i, 0, wxString::Format("%lu", networkInformation[i].deviceInformation.uniqueId));
@@ -84,7 +87,7 @@ void NetworkDialog::OnInit(wxAuiManagerEvent& event) {
 
 }
 
-void NetworkDialog::OnClose(wxCloseEvent& event) {
+void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
 
 	// Notify the parent we have closed, so that it can update its toolbar state
 	isNetworkDialogVisible = false;
