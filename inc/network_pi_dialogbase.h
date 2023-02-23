@@ -34,7 +34,7 @@ class NetworkDialogBase : public wxPanel
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxAuiManagerEvent& event ) { event.Skip(); }
-		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
+		virtual void OnInit( wxAuiManagerEvent& event ) { event.Skip(); }
 		virtual void OnRightClick( wxGridEvent& event ) { event.Skip(); }
 
 

@@ -39,7 +39,9 @@ NetworkDialog::~NetworkDialog() {
 	// Nothing to do in the destructor
 }
 
-void NetworkDialog::OnInit(wxInitDialogEvent& event) {
+void NetworkDialog::OnInit(wxAuiManagerEvent& event) {
+	wxMessageBox("On Init");
+
 	// Ensure the dialog is sized correctly	
 	wxSize newSize = this->GetSize();
 	gridNetwork->SetMinSize(wxSize(512, 20 * gridNetwork->GetDefaultRowSize()));
