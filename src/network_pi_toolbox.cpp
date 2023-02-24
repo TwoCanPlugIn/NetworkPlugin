@@ -28,15 +28,38 @@
 
 #include "network_pi_toolbox.h"
 
+
 // Constructor and destructor implementation
 NetworkToolbox::NetworkToolbox( wxWindow* parent) : NetworkToolboxBase(parent) {
-	// BUG BUG This could go in an OnInit event, and could be a global variable
+	// BUG BUG This could go in an OnInit event
 	settingsDirty = FALSE;
 }
 
 NetworkToolbox::~NetworkToolbox() {
 	// Nothing to do in the destructor
 }
+
+void NetworkToolbox::GetInterfaces(void) {
+	// Setup the NMEA 2000 Network interface
+	// BUG BUG This should go into the toolbox
+	activeDrivers.clear();
+	activeDrivers = GetActiveDrivers();
+
+	// Enumerate the drivers and select a NMEA 2000 network connection
+	for (auto const& activeDriver : activeDrivers) {
+		for (auto const& driver : GetAttributes(activeDriver)) {
+			if (driver.second == "NMEA2000") {
+				cmbInterface->Append(activeDriver);
+				//if (driverHandle == activeDriver) {
+				//	cmbInterface->SetStringSelection(activeDriver);
+				//}
+				// BUG BUG Need to prettify the display. 
+				// This is just stupid. nmea2000!@!COM6
+			}
+		}
+	}
+}
+
 
 void NetworkToolbox::OnInterfaceSelected(wxCommandEvent& event) {
 	settingsDirty = TRUE;

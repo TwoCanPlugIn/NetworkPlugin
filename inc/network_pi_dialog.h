@@ -97,8 +97,9 @@ protected:
 	//overridden methods from the base class
 	void OnActivate(wxAuiManagerEvent& event);
 	void OnClose(wxAuiManagerEvent& event);
-	void OnRightClick(wxCommandEvent &event);
-	
+	void OnInit(wxInitDialogEvent& event);
+	void OnRightClick(wxGridEvent& event);
+
 private:
 	// Parent Windows Size
 	int parentWidth;

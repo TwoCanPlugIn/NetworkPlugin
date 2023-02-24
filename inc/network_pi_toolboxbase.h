@@ -33,7 +33,7 @@ class NetworkToolboxBase : public wxPanel
 
 	protected:
 		wxStaticText* labelInterface;
-		wxComboBox* cmbInterfce;
+		wxComboBox* cmbInterface;
 		wxStaticText* labelHeartbeat;
 		wxSpinCtrl* spinInterval;
 		wxCheckBox* chkHeartbeat;

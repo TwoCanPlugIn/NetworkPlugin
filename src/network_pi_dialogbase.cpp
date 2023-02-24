@@ -18,17 +18,17 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 
 	// Grid
 	gridNetwork->CreateGrid( 253, 3 );
-	gridNetwork->EnableEditing( FALSE );
-	gridNetwork->EnableGridLines( TRUE );
-	gridNetwork->EnableDragGridSize( FALSE );
+	gridNetwork->EnableEditing( false );
+	gridNetwork->EnableGridLines( true );
+	gridNetwork->EnableDragGridSize( false );
 	gridNetwork->SetMargins( 0, 0 );
 
 	// Columns
 	gridNetwork->SetColSize( 0, 85 );
 	gridNetwork->SetColSize( 1, 120 );
 	gridNetwork->SetColSize( 2, 120 );
-	gridNetwork->EnableDragColMove( FALSE );
-	gridNetwork->EnableDragColSize( TRUE );
+	gridNetwork->EnableDragColMove( false );
+	gridNetwork->EnableDragColSize( true );
 	gridNetwork->SetColLabelSize( 30 );
 	gridNetwork->SetColLabelValue( 0, wxT("Unique Id") );
 	gridNetwork->SetColLabelValue( 1, wxT("Manufacturer") );
@@ -36,7 +36,7 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 	gridNetwork->SetColLabelAlignment( wxALIGN_LEFT, wxALIGN_CENTER );
 
 	// Rows
-	gridNetwork->EnableDragRowSize( TRUE );
+	gridNetwork->EnableDragRowSize( true );
 	gridNetwork->SetRowLabelSize( 80 );
 	gridNetwork->SetRowLabelAlignment( wxALIGN_LEFT, wxALIGN_CENTER );
 
@@ -51,16 +51,18 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 	this->Layout();
 
 	// Connect Events
-	this->Connect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialogBase::OnClose ) );
-	this->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialogBase::OnActivate ) );
-	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler(NetworkDialogBase::OnRightClick ), NULL, this );
+	this->Connect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
+	this->Connect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler( NetworkDialogBase::OnClose ) );
+	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
+	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
 }
 
 NetworkDialogBase::~NetworkDialogBase()
 {
 	// Disconnect Events
-	this->Disconnect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialogBase::OnClose ) );
-	this->Disconnect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialogBase::OnActivate ) );
-	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler(NetworkDialogBase::OnRightClick ), NULL, this );
+	this->Disconnect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
+	this->Disconnect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler( NetworkDialogBase::OnClose ) );
+	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
+	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
 
 }

@@ -26,11 +26,8 @@
 // 1.0 Initial Release
 
 #include "network_pi_plugin.h"
-#include "network_pi_icons.h"
 
-// Protect access to list of network devices
-// BUG BUG Used anywhere ??
-wxCriticalSection *lockNetworkData;
+#include "network_pi_icons.h"
 
 //  Debug spew via UDP
 wxDatagramSocket *udpSocket;
@@ -89,25 +86,7 @@ int NetworkPlugin::Init(void) {
 	// Initialize the toolbar
 	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_("NMEA 2000 Network"), _T("Display devices on NMEA 2000 Network"), NULL, -1, 0, this);
 
-	// Setup the NMEA 2000 Network interface
-	// BUG BUG This should go into the toolbox
-	std::vector<DriverHandle> activeDrivers = GetActiveDrivers();
-
-	// Enumerate the drivers and select a NMEA 2000 network connection
-
-	for (auto const& activeDriver : activeDrivers) {
-		for (auto const& driver : GetAttributes(activeDriver)) {
-			wxLogMessage(_T("Network Plugin, Driver: %s, Handle: %s, Name: %s"), activeDriver, driver.first, driver.second);
-			if (driver.second == "NMEA2000") {
-				// Save the first device as a handle
-				// BUG BUG Should allow the user to select which interface to use
-				driverHandle = activeDriver;
-				goto exitNetwork;
-			}
-		}
-
-	}
-exitNetwork:
+	
 
 	// Need to notify Actisense NGT-1 what PGN's we transmit
 	// We only transmit PGN 59904 ISO Request
@@ -163,7 +142,7 @@ exitNetwork:
 	wxMenuItem *myMenu = new wxMenuItem(NULL, wxID_HIGHEST + 1, _T("NMEA 2000"), wxEmptyString, wxITEM_NORMAL, NULL);
 	networkContextMenu = AddCanvasContextMenuItem(myMenu, this);
 
-	// Wire up the Dialog Close event
+	// Wire up the Network Dialog Close event
 	Connect(wxEVT_NETWORK_PLUGIN_EVENT, wxCommandEventHandler(NetworkPlugin::OnPluginEvent));
 
 	// Instantiate the dialog
@@ -185,22 +164,19 @@ exitNetwork:
 	else {
 		isNetworkDialogVisible = FALSE;
 	}
-	//if (isNetworkDialogVisible) {
-	//	paneInfo.Show();
-	//}
 
 	// Synchronize toolbar status
 	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 	
-	// Toolbox pane
+	// OpenCPN Settings Dialog toolbox extension
 	toolboxPanel = nullptr;
 
 	// Protect against reading the network list being updaed
-	// BUG BUG Used anywhere
+	// BUG BUG Is this used anywhere ??
 	lockNetworkData = new wxCriticalSection();
 	
 	// BUG BUG Investigating some different API's
-	// Need to ensure dialog uses the correct units
+	// BUG BUG Remove
 	wxLogMessage(_T("*** Distance Unit: %s"),getUsrDistanceUnit_Plugin(-1));
 	wxLogMessage(_T("*** Speed Unit: %s"), getUsrSpeedUnit_Plugin(-1));
 	wxLogMessage(_T("*** Shared: %s"), *GetpSharedDataLocation());
@@ -209,7 +185,9 @@ exitNetwork:
 	wxLogMessage(_T("*** Private App: %s"), *GetpPrivateApplicationDataLocation());
 	wxLogMessage(_T("*** Doc Path: %s"), GetWritableDocumentsDir());
 	wxLogMessage(_T("*** Toolbox: %d"), GetToolboxPanelCount());
-	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("network_pi")); // Doesn't Work "Network Plugin"));
+	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("network_pi")); 
+	// BUG BUG GetPluginDataDir doesn't work the way I wold expect it to.
+	// It won't use the Plugin Common Name "Network Plugin", which is what I would have expected 
 
 	// Initialize Debug Spew via UDP
 	addrLocal.Hostname();
@@ -381,9 +359,8 @@ void NetworkPlugin::SetupToolboxPanel(int page_sel, wxNotebook* pnotebook) {
 // Invoked when the OpenCPN Toolbox OK, Apply or Cancel buttons are pressed
 // Requires INSTALLS_TOOLBOX_PAGE
 void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
-	// 16 = Cancel, 0 = OK, 4 = Apply
 	if (((ok_apply_cancel == 0) || (ok_apply_cancel == 4)) && (settingsDirty == TRUE)) {
-		// Save the setttings
+		// Save the settings
 		if (configSettings) {
 			configSettings->SetPath(_T("/PlugIns/Network"));
 			configSettings->Write(_T("Visible"), isNetworkDialogVisible);
@@ -513,7 +490,7 @@ void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
 	networkInformation[source].deviceInformation.selfConfigure = (payload[index + 7] & 0x80) >> 7;
 
 	// BUG BUG Debugging
-	wxLogMessage(_T("Debug: Source: %d, Id: %d, Manufacturer: %d"), source, networkInformation[source].deviceInformation.uniqueId, networkInformation[source].deviceInformation.manufacturerId);
+	wxLogMessage(_T("Network Plugin, Address Claim: Source: %d, Id: %d, Manufacturer: %d"), source, networkInformation[source].deviceInformation.uniqueId, networkInformation[source].deviceInformation.manufacturerId);
 
 }
 
@@ -521,8 +498,27 @@ void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
 void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 	NMEA2000Id id_126464(126464);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126464, ev);
+	std::vector<unsigned int> transmittedPGN;
+	std::vector<unsigned int> receivedPGN;
 
 	unsigned char source = payload[7];
+	unsigned char flagRxTx = payload[index + 0];
+	// 0 = Transmitted, 1 = Received
+	unsigned int pgn;
+	// first byte of PGN126464 indicates whether Tx or Rx, then each PGN encoded over three bytes
+	for (int i = 0; i < (((payload.size() - index - 1)) / 3); i++) {
+		pgn = payload[index + 1 + (i * 3)] | (payload[index + 2 + (i * 3)] << 8) | (payload[index + 3 + (i * 3)] << 16);
+		if (pgn != 0xFFFFFF) {
+			if (flagRxTx == 0) {
+				transmittedPGN.push_back(pgn);
+			}
+			if (flagRxTx == 1) {
+				receivedPGN.push_back(pgn);
+			}
+		}
+	}
+	// BUG BUG What to do with these ??
+
 }
 
 // PGN 126993 NMEA Heartbeat
@@ -533,22 +529,22 @@ void NetworkPlugin::HandleN2K_126993(ObservedEvt ev) {
 	unsigned char source = payload[7];
 
 	unsigned short timeOffset;
-	timeOffset = payload[0] | (payload[1] << 8);
+	timeOffset = payload[index + 0] | (payload[index + 1] << 8);
 
 	unsigned char counter;
-	counter = payload[2];
+	counter = payload[index + 2];
 
 	unsigned char class1CanState;
-	class1CanState = payload[3] & 0x07;
+	class1CanState = payload[index + 3] & 0x07;
 
 	unsigned char class2CanState;
-	class2CanState = (payload[3] & 0x38) >> 3;
+	class2CanState = (payload[index + 3] & 0x38) >> 3;
 
 	unsigned char equipmentState;
-	equipmentState = (payload[3] & 0x40) >> 6;
+	equipmentState = (payload[index + 3] & 0x40) >> 6;
 
-	// BUG BUG Remove for production once this has been tested
-	wxLogMessage(wxString::Format("Network Plugin, Heartbeat, Source: %d, Time: %d, Count: %d, CAN 1: %d, CAN 2: %d", source, timeOffset, counter, class1CanState, class2CanState));
+	// BUG BUG Debug
+	wxLogMessage(wxString::Format("Network Plugin, Heartbeat: Source: %d, Time: %d, Count: %d, CAN 1: %d, CAN 2: %d", source, timeOffset, counter, class1CanState, class2CanState));
 
 }
 
@@ -606,7 +602,9 @@ void NetworkPlugin::HandleN2K_126996(ObservedEvt ev) {
 	networkInformation[source].productInformation.loadEquivalency = payload[133];
 
 	// BUG BUG Debugging
-	wxLogMessage(_T("Debug Source: %d, Product Code: %d, Model Id: %s"), source, networkInformation[source].productInformation.productCode, networkInformation[source].productInformation.modelId);
+	wxLogMessage(_T("Network Plugin, Product Information: Source: %d, Product Code: %d, Model Id: %s"), 
+		source, networkInformation[source].productInformation.productCode, 
+		networkInformation[source].productInformation.modelId);
 }
 
 // PGN 126998 Configuration Information
@@ -650,5 +648,8 @@ void NetworkPlugin::HandleN2K_126998(ObservedEvt ev) {
 			variableIndex++;
 		}
 	}
-
+	// BUG BUG Debugging
+	wxLogMessage(_T("Network Plugin, Configuration Information: Source: %d, Info 1: %s, Info 2: %s"), source, 
+		networkInformation[source].configurationInformation.information1, 
+		networkInformation[source].configurationInformation.information2);
 }

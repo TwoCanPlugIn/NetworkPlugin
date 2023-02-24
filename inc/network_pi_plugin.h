@@ -60,6 +60,10 @@ const int NETWORKDIALOG_PING_EVENT = wxID_HIGHEST + 3;
 
 // Globally accessible variables
 
+// Protect access to list of network devices
+// BUG BUG Is this used anywhere ??
+wxCriticalSection *lockNetworkData;
+
 // Array of network devices & their product and device information
 NetworkInformation networkInformation[253];
 
@@ -122,7 +126,7 @@ public:
 	void OnPluginEvent(wxCommandEvent &event);
 		
 private:
-	// Grid Display of NNMEA 2000 Network Devices
+	// AUI Panel with a Data Grid to display list of NNMEA 2000 Network Devices
 	NetworkDialog *networkDialog;
 
 	// Plugin bitmap
@@ -131,6 +135,7 @@ private:
 	// Reference to the OpenCPN window handle
 	wxWindow *parentWindow;
 
+	// wxWidgets Advanced User Interface stuff
 	wxAuiManager *auiManager;
 	wxAuiPaneInfo paneInfo;
 	
@@ -140,7 +145,7 @@ private:
 	// Context menu id's
 	int networkContextMenu;
 
-	// Toolbox panel
+	// Toolbox panel, displayed in OpenCPN Settings dialog
 	NetworkToolbox *toolboxPanel;
 
 	// Timer & Timer Events

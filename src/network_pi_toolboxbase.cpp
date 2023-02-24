@@ -18,8 +18,8 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	labelInterface->Wrap( -1 );
 	sizerPanel->Add( labelInterface, 0, wxALL, 5 );
 
-	cmbInterfce = new wxComboBox( this, wxID_ANY, wxT("Combo!"), wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
-	sizerPanel->Add( cmbInterfce, 0, wxALL, 5 );
+	cmbInterface = new wxComboBox( this, wxID_ANY, wxT("Combo!"), wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
+	sizerPanel->Add( cmbInterface, 0, wxALL, 5 );
 
 	labelHeartbeat = new wxStaticText( this, wxID_ANY, wxT("Heartbeat Interval"), wxDefaultPosition, wxDefaultSize, 0 );
 	labelHeartbeat->Wrap( -1 );
@@ -39,7 +39,7 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	this->Layout();
 
 	// Connect Events
-	cmbInterfce->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
+	cmbInterface->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
 	spinInterval->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
 	chkHeartbeat->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
 	chkNetwork->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
@@ -48,7 +48,7 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 NetworkToolboxBase::~NetworkToolboxBase()
 {
 	// Disconnect Events
-	cmbInterfce->Disconnect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
+	cmbInterface->Disconnect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
 	spinInterval->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
 	chkHeartbeat->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
 	chkNetwork->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );

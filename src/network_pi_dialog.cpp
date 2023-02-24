@@ -56,8 +56,13 @@ NetworkDialog::~NetworkDialog() {
 	// Nothing to do in the destructor
 }
 
+void NetworkDialog::OnInit(wxInitDialogEvent& event) {
+	wxMessageBox("OnInit");
+}
+
+
 void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
-	wxMessageBox("AUI Actiate, OnInit");
+	wxMessageBox("OnActivate");
 
 	// Populate the Data Grid
 
@@ -98,6 +103,6 @@ void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
 	event.Skip();
 }
 
-void NetworkDialog::OnRightClick(wxCommandEvent &event) {
+void NetworkDialog::OnRightClick(wxGridEvent &event) {
 	wxMessageBox(wxString::Format("Selected: %d", event.GetSelection()));
 }

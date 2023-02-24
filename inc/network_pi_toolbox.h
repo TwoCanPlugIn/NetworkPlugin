@@ -31,6 +31,9 @@
 // Note wxFormBuilder was used to generate the UI
 #include "network_pi_toolboxbase.h"
 
+// OpenCPN include file
+#include "ocpn_plugin.h"
+
 // Flag used to indicate if any settings have been changed
 extern bool settingsDirty;
 
@@ -49,7 +52,8 @@ protected:
 	void OnNetworkChanged(wxCommandEvent& event);
 
 private:
-	
+	void GetInterfaces(void);
+	std::vector<DriverHandle> activeDrivers;
 };
 
 #endif
