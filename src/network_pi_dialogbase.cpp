@@ -11,8 +11,8 @@
 
 NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
 {
-	m_mgr.SetManagedWindow(this);
-	m_mgr.SetFlags(wxAUI_MGR_DEFAULT);
+	wxBoxSizer* sizerPanel;
+	sizerPanel = new wxBoxSizer( wxVERTICAL );
 
 	gridNetwork = new wxGrid( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 
@@ -39,14 +39,13 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 
 	// Cell Defaults
 	gridNetwork->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
-	m_mgr.AddPane( gridNetwork, wxAuiPaneInfo() .Left() .PinButton( true ).Dock().Resizable().FloatingSize( wxDefaultSize ) );
+	sizerPanel->Add( gridNetwork, 0, wxALL, 5 );
 
 
-	m_mgr.Update();
+	this->SetSizer( sizerPanel );
+	this->Layout();
 
 	// Connect Events
-	this->Connect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
-	this->Connect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler( NetworkDialogBase::OnClose ) );
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
 	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
 }
@@ -54,11 +53,7 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 NetworkDialogBase::~NetworkDialogBase()
 {
 	// Disconnect Events
-	this->Disconnect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
-	this->Disconnect( wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler( NetworkDialogBase::OnClose ) );
 	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
 	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
-
-	m_mgr.UnInit();
 
 }

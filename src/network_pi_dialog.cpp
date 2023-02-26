@@ -98,12 +98,12 @@ void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
 	wxMessageBox(wxString::Format("NetworkDialog, OnClose: %d", event.GetId()));
 
 	// Notify the parent we have closed, so that it can update its toolbar state
-	isNetworkDialogVisible = FALSE;
+	// isNetworkDialogVisible = FALSE;
 
-	wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
-	wxQueueEvent(eventHandler, closeEvent);
+	//wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
+	//wxQueueEvent(eventHandler, closeEvent);
 
-	event.Skip();
+	//event.Skip();
 }
 
 void NetworkDialog::OnRightClick(wxGridEvent &event) {

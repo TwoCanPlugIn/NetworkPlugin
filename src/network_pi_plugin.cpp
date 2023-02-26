@@ -51,14 +51,12 @@ NetworkPlugin::NetworkPlugin(void *ppimgr) : opencpn_plugin_118(ppimgr), wxEvtHa
 
 	// Initialize Advanced User Interface Manager (AUI)
 	auiManager = GetFrameAuiManager();
-	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
-	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
 }
 
 // Destructor
 NetworkPlugin::~NetworkPlugin(void) {
-	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
-	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
+	//auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
+	//auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
 }
 
 int NetworkPlugin::Init(void) {
@@ -157,6 +155,8 @@ int NetworkPlugin::Init(void) {
 	paneInfo.Hide();
 	paneInfo.Dockable(FALSE);
 	auiManager->AddPane(networkDialog, paneInfo);
+	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
+	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
 	auiManager->Update();
 
 	// BUG BUG Superfluous
@@ -212,6 +212,52 @@ int NetworkPlugin::Init(void) {
 	return (WANTS_CONFIG | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | INSTALLS_CONTEXTMENU_ITEMS | USES_AUI_MANAGER | WANTS_CURSOR_LATLON | WANTS_OVERLAY_CALLBACK | INSTALLS_TOOLBOX_PAGE | WANTS_NMEA_EVENTS | WANTS_NMEA_SENTENCES | WANTS_AIS_SENTENCES | WANTS_LATE_INIT | WANTS_PLUGIN_MESSAGING);
 }
 
+// OpenCPN is either closing down, or has been disabled from the Preferences Dialog
+bool NetworkPlugin::DeInit(void) {
+	// Cleanup Dialog Event Handler
+	Disconnect(wxEVT_NETWORK_PLUGIN_EVENT, wxCommandEventHandler(NetworkPlugin::OnPluginEvent));
+
+	// Save configuration settings
+	if (configSettings) {
+		configSettings->SetPath(_T("/PlugIns/Network"));
+		configSettings->Write(_T("Visible"), isNetworkDialogVisible);
+		configSettings->Write(_T("Interval"), heartbeatInterval);
+		configSettings->Write(_T("Interface"), interfaceName);
+		configSettings->Write(_T("Heartbeat"), sendHeartbeat);
+		configSettings->Write(_T("Request"), sendRequest);
+	}
+
+	// Stop the timer
+	if (sendHeartbeat) {
+		heartbeatTimer->Stop();
+		heartbeatTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
+		delete heartbeatTimer;
+	}
+
+	// Cleanup the critical section lock
+	// BUG BUG Used anywhere ??
+	delete lockNetworkData;
+
+	// Cleanup Debug Spew
+	udpSocket->Close();
+
+	// Cleanup AUI
+	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
+	auiManager->Disconnect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
+	auiManager->UnInit();
+	auiManager->DetachPane(networkDialog);
+	delete networkDialog;
+
+	return TRUE;
+}
+
+void NetworkPlugin::LateInit(void) {
+	// BUG BUG Can be removed
+	wxMessageBox("Late Init");
+}
+
+
+
 // Timer sends heartbeat and network request PGN's
 void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
@@ -249,6 +295,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 }
 
+// Not sure when this is called
 void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
 	wxMessageBox(wxString::Format("plugin.cpp, OnPaneClose: %d", event.GetId()));
 
@@ -256,43 +303,7 @@ void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
 	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 }
 
-// OpenCPN is either closing down, or has been disabled from the Preferences Dialog
-bool NetworkPlugin::DeInit(void) {
-	// Cleanup Dialog Event Handler
-	Disconnect(wxEVT_NETWORK_PLUGIN_EVENT, wxCommandEventHandler(NetworkPlugin::OnPluginEvent));
-
-	// Save configuration settings
-	if (configSettings) {
-		configSettings->SetPath(_T("/PlugIns/Network"));
-		configSettings->Write(_T("Visible"), isNetworkDialogVisible);
-		configSettings->Write(_T("Interval"), heartbeatInterval);
-		configSettings->Write(_T("Interface"), interfaceName);
-		configSettings->Write(_T("Heartbeat"), sendHeartbeat);
-		configSettings->Write(_T("Request"), sendRequest);
-	}
-
-	// Stop the timer
-	if (sendHeartbeat) {
-		heartbeatTimer->Stop();
-		heartbeatTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
-		delete heartbeatTimer;
-	}
-
-	// Cleanup the critical section lock
-	// BUG BUG Used anywhere ??
-	delete lockNetworkData;
-
-	// Cleanup Debug Spew
-	udpSocket->Close();
-
-	// Cleanup AUI
-	auiManager->UnInit();
-	auiManager->DetachPane(networkDialog);
-	delete networkDialog;
-
-	return TRUE;
-}
-
+// Called when OpenCPN is loading saved AUI pages
 void NetworkPlugin::UpdateAuiStatus(void) {
 	wxMessageBox(wxString::Format("network plugin, UpdateAuiStatus: IsOK: %d IsShown: %d", paneInfo.IsOk(), paneInfo.IsShown()));
 	
@@ -300,12 +311,6 @@ void NetworkPlugin::UpdateAuiStatus(void) {
 		isNetworkDialogVisible = TRUE;
 		SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 	}
-}
-
-void NetworkPlugin::LateInit(void) {
-	// BUG BUG Can be removed
-	std::string foobar = "Late Init";
-	udpSocket->SendTo(addrPeer, foobar.data(), foobar.length());
 }
 
 // Indicate what version of the OpenCPN Plugin API we support
@@ -349,7 +354,7 @@ wxBitmap* NetworkPlugin::GetPlugInBitmap() {
 // Requires INSTALLS_TOOLBOX_PAGE
 void NetworkPlugin::OnSetupOptions(void) {
 	// Get a handle to our options page window: ui settings, and add a sizer to it, to which we will add our toolbox panel
-	wxScrolledWindow *optionsWindow = AddOptionsPage(OptionsParentPI::PI_OPTIONS_PARENT_UI, _T("Network"));
+	optionsWindow = AddOptionsPage(OptionsParentPI::PI_OPTIONS_PARENT_UI, _T("Network"));
 	wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 	optionsWindow->SetSizer(sizer);
 	// Create our toolbox panel and add it to the toolbox via the sizer
@@ -376,6 +381,9 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 			configSettings->Write(_T("Request"), sendRequest);
 		}
 	}
+
+	// Cleanup the toolbox
+	DeleteOptionsPage(optionsWindow);
 	delete toolboxPanel;
 	toolboxPanel = nullptr;
 }
@@ -397,6 +405,12 @@ void NetworkPlugin::SetDefaults(void) {
 // BUG BUG Remove as not useful
 void NetworkPlugin::OnContextMenuItemCallback(int id) {
 	if (id == networkContextMenu) {	
+		isNetworkDialogVisible = !isNetworkDialogVisible;
+		auiManager->GetPane(_T("Network Plugin")).Show(isNetworkDialogVisible);
+		auiManager->Update();
+		SetToolbarItemState(id, isNetworkDialogVisible);
+
+
 		wxMessageBox(wxString::Format(_T("Chart Tilt: %f"), GetCanvasTilt()));
 	}
 }

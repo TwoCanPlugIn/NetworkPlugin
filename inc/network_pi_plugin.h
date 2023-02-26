@@ -146,6 +146,7 @@ private:
 	int networkContextMenu;
 
 	// Toolbox panel, displayed in OpenCPN Settings dialog
+	wxScrolledWindow *optionsWindow;
 	NetworkToolbox *toolboxPanel;
 
 	// Timer & Timer Events

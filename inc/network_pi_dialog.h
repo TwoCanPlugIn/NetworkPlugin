@@ -34,6 +34,8 @@
 
 #include <wx/log.h>
 
+#include <wx/aui/aui.h>
+
 // Typedefs
 // NMEA 2000 Product Information, transmitted in PGN 126996 NMEA Product Information
 typedef struct ProductInformation {
@@ -84,9 +86,6 @@ extern const int NETWORKDIALOG_PING_EVENT;
 // Array of network devices & their product and device information
 extern NetworkInformation networkInformation[253];
 
-// Whether the Dialog is displayed, used to keep toolbar in synch
-extern bool isNetworkDialogVisible;
-
 class NetworkDialog : public NetworkDialogBase {
 	
 public:
@@ -94,7 +93,7 @@ public:
 	~NetworkDialog();
 	void OnActivate(wxAuiManagerEvent& event);
 	void OnClose(wxAuiManagerEvent& event);
-
+	
 protected:
 	//overridden methods from the base class
 	
@@ -105,6 +104,8 @@ private:
 	// Parent Windows Size
 	int parentWidth;
 	int parentHeight;
+	
+	// Send events from the dialog to the plugin
 	wxEvtHandler *eventHandler;
 };
 
