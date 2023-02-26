@@ -181,6 +181,10 @@ private:
 	void HandleN2K_126998(ObservedEvt ev);
 	std::shared_ptr<ObservableListener> listener_126998;
 
+	// Debug bullshit
+	void OnActivate(wxAuiManagerEvent& event);
+	void OnClose(wxAuiManagerEvent& event);
+
 };
 
 #endif 

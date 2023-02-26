@@ -155,8 +155,8 @@ int NetworkPlugin::Init(void) {
 	paneInfo.Hide();
 	paneInfo.Dockable(FALSE);
 	auiManager->AddPane(networkDialog, paneInfo);
-	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
-	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
+	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnClose), NULL, this);
+	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkPlugin::OnActivate), NULL, this);
 	auiManager->Update();
 
 	// BUG BUG Superfluous
@@ -425,6 +425,14 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 		auiManager->Update();
 		SetToolbarItemState(id, isNetworkDialogVisible);
 	}
+}
+
+void NetworkPlugin::OnActivate(wxAuiManagerEvent& event) {
+	wxMessageBox(wxString::Format("NetworkPlugin, OnActivate: %d", event.GetId()));
+}
+
+void NetworkPlugin::OnClose(wxAuiManagerEvent& event) {
+	wxMessageBox(wxString::Format("NetworkPlugin, OnClose: %d", event.GetId()));
 }
 
 // Handle events from the dialog
