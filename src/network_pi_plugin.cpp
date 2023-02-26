@@ -51,12 +51,14 @@ NetworkPlugin::NetworkPlugin(void *ppimgr) : opencpn_plugin_118(ppimgr), wxEvtHa
 
 	// Initialize Advanced User Interface Manager (AUI)
 	auiManager = GetFrameAuiManager();
-	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
+	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
+	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
 }
 
 // Destructor
 NetworkPlugin::~NetworkPlugin(void) {
-	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
+	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
+	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
 }
 
 int NetworkPlugin::Init(void) {

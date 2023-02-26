@@ -92,11 +92,12 @@ class NetworkDialog : public NetworkDialogBase {
 public:
 	NetworkDialog(wxWindow* parent, wxEvtHandler *handler);
 	~NetworkDialog();
-	
-protected:
-	//overridden methods from the base class
 	void OnActivate(wxAuiManagerEvent& event);
 	void OnClose(wxAuiManagerEvent& event);
+
+protected:
+	//overridden methods from the base class
+	
 	void OnInit(wxInitDialogEvent& event);
 	void OnRightClick(wxGridEvent& event);
 
