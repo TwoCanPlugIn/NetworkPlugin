@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Oct 26 2018)
+// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -15,7 +15,6 @@
 #include <wx/font.h>
 #include <wx/grid.h>
 #include <wx/gdicmn.h>
-#include <wx/sizer.h>
 #include <wx/panel.h>
 #include <wx/aui/aui.h>
 
@@ -32,7 +31,7 @@ class NetworkDialogBase : public wxPanel
 	protected:
 		wxGrid* gridNetwork;
 
-		// Virtual event handlers, overide them in your derived class
+		// Virtual event handlers, override them in your derived class
 		virtual void OnActivate( wxAuiManagerEvent& event ) { event.Skip(); }
 		virtual void OnClose( wxAuiManagerEvent& event ) { event.Skip(); }
 		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
@@ -42,6 +41,8 @@ class NetworkDialogBase : public wxPanel
 	public:
 
 		NetworkDialogBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+		wxAuiManager m_mgr;
+
 		~NetworkDialogBase();
 
 };
