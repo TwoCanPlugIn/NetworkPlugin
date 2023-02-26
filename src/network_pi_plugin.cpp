@@ -248,6 +248,8 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 }
 
 void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
+	wxMessageBox(wxString::Format("plugin.cpp, OnPaneClose: %d", event.GetId()));
+
 	isNetworkDialogVisible = FALSE;
 	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 }
@@ -290,6 +292,8 @@ bool NetworkPlugin::DeInit(void) {
 }
 
 void NetworkPlugin::UpdateAuiStatus(void) {
+	wxMessageBox(wxString::Format("network plugin, UpdateAuiStatus: IsOK: %d IsShown: %d", paneInfo.IsOk(), paneInfo.IsShown()));
+	
 	if ((paneInfo.IsOk()) && (paneInfo.IsShown())) {
 		isNetworkDialogVisible = TRUE;
 		SetToolbarItemState(networkToolbar, isNetworkDialogVisible);

@@ -50,6 +50,8 @@ NetworkDialog::NetworkDialog(wxWindow* parent, wxEvtHandler *handler) : NetworkD
 		// Renumber row labels to match network address 0 - 253
 		gridNetwork->SetRowLabelValue(i, std::to_string(i));
 	}
+
+	
 }
 
 NetworkDialog::~NetworkDialog() {
@@ -57,12 +59,12 @@ NetworkDialog::~NetworkDialog() {
 }
 
 void NetworkDialog::OnInit(wxInitDialogEvent& event) {
-	wxMessageBox("OnInit");
+	wxMessageBox(wxString::Format("NetworkDialog, OnInit: %d", event.GetId()));
 }
 
 
 void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
-	wxMessageBox("OnActivate");
+	wxMessageBox(wxString::Format("NetworkDialog, OnActivate: %d", event.GetId()));
 
 	// Populate the Data Grid
 
@@ -89,10 +91,11 @@ void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
 			//}
 		}
 	}
-	event.Skip();
+	//event.Skip();
 }
 
 void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
+	wxMessageBox(wxString::Format("NetworkDialog, OnClose: %d", event.GetId()));
 
 	// Notify the parent we have closed, so that it can update its toolbar state
 	isNetworkDialogVisible = FALSE;
@@ -104,5 +107,5 @@ void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
 }
 
 void NetworkDialog::OnRightClick(wxGridEvent &event) {
-	wxMessageBox(wxString::Format("Selected: %d", event.GetSelection()));
+	wxMessageBox(wxString::Format("Event: %d, Selected: %d", event.GetId(), event.GetSelection()));
 }
