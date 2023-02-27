@@ -32,6 +32,7 @@
 NetworkToolbox::NetworkToolbox( wxWindow* parent) : NetworkToolboxBase(parent) {
 	// BUG BUG This could go in an OnInit event ??
 	settingsDirty = FALSE;
+	ListInterfaces();
 }
 
 NetworkToolbox::~NetworkToolbox() {
@@ -40,17 +41,16 @@ NetworkToolbox::~NetworkToolbox() {
 
 void NetworkToolbox::ListInterfaces(void) {
 	// Setup the NMEA 2000 Network interface
-	// BUG BUG This should go into the toolbox
 	activeDrivers.clear();
 	activeDrivers = GetActiveDrivers();
 
 	// Enumerate the drivers and select a NMEA 2000 network connection
 	for (auto const& activeDriver : activeDrivers) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
+			wxLogMessage(_T("Network Plugin, Interface: %s, Handle: %s, Protocol: %s"),
+				activeDriver, driver.first, driver.second);
 			if (driver.second == "NMEA2000") {
 				cmbInterface->Append(activeDriver);
-				wxLogMessage(_T("Network Plugin, Interface: %s, Handle: %s, Protocol: %s"),
-					activeDriver, driver.first, driver.second);
 				//if (driverHandle == activeDriver) {
 				//	cmbInterface->SetStringSelection(activeDriver);
 				//}
