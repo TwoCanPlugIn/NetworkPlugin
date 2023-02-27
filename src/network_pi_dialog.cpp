@@ -58,11 +58,13 @@ NetworkDialog::~NetworkDialog() {
 	// Nothing to do in the destructor
 }
 
+// BUG BUG Doesn't seem to be called
 void NetworkDialog::OnInit(wxInitDialogEvent& event) {
 	wxMessageBox(wxString::Format("NetworkDialog, OnInit: %d", event.GetId()));
+	event.Skip();
 }
 
-
+// BUG BUG Doesn't seem to be called
 void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
 	wxMessageBox(wxString::Format("NetworkDialog, OnActivate: %d", event.GetId()));
 
@@ -91,21 +93,22 @@ void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
 			//}
 		}
 	}
-	//event.Skip();
+	event.Skip();
 }
 
+// BUG BUG Doesn't seem to work
 void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
 	wxMessageBox(wxString::Format("NetworkDialog, OnClose: %d", event.GetId()));
 
 	// Notify the parent we have closed, so that it can update its toolbar state
-	// isNetworkDialogVisible = FALSE;
+	
+	wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
+	wxQueueEvent(eventHandler, closeEvent);
 
-	//wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
-	//wxQueueEvent(eventHandler, closeEvent);
-
-	//event.Skip();
+	event.Skip();
 }
 
+// BUG BUG Untested
 void NetworkDialog::OnRightClick(wxGridEvent &event) {
 	wxMessageBox(wxString::Format("Event: %d, Selected: %d", event.GetId(), event.GetSelection()));
 }

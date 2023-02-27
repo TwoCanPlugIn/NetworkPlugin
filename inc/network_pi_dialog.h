@@ -32,10 +32,6 @@
 
 #include <wx/timer.h>
 
-#include <wx/log.h>
-
-#include <wx/aui/aui.h>
-
 // Typedefs
 // NMEA 2000 Product Information, transmitted in PGN 126996 NMEA Product Information
 typedef struct ProductInformation {
@@ -78,6 +74,7 @@ typedef struct NetworkInformation {
 // image for dialog icon
 extern wxBitmap *_img_network_colour;
 
+// Events that we pass to the plugin
 extern int const wxEVT_NETWORK_PLUGIN_EVENT;
 extern const int NETWORKDIALOG_OPEN_EVENT;
 extern const int NETWORKDIALOG_CLOSE_EVENT;
@@ -91,21 +88,20 @@ class NetworkDialog : public NetworkDialogBase {
 public:
 	NetworkDialog(wxWindow* parent, wxEvtHandler *handler);
 	~NetworkDialog();
-	void OnActivate(wxAuiManagerEvent& event);
-	void OnClose(wxAuiManagerEvent& event);
 	
 protected:
 	//overridden methods from the base class
-	
+	void OnActivate(wxAuiManagerEvent& event);
+	void OnClose(wxAuiManagerEvent& event);
 	void OnInit(wxInitDialogEvent& event);
 	void OnRightClick(wxGridEvent& event);
 
 private:
-	// Parent Windows Size
+	// Parent Window Size
 	int parentWidth;
 	int parentHeight;
 	
-	// Send events from the dialog to the plugin
+	// The plugin event handler
 	wxEvtHandler *eventHandler;
 };
 

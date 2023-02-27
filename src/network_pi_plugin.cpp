@@ -55,8 +55,7 @@ NetworkPlugin::NetworkPlugin(void *ppimgr) : opencpn_plugin_118(ppimgr), wxEvtHa
 
 // Destructor
 NetworkPlugin::~NetworkPlugin(void) {
-	//auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
-	//auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
+	// Nothing to do ??
 }
 
 int NetworkPlugin::Init(void) {
@@ -86,14 +85,12 @@ int NetworkPlugin::Init(void) {
 	// Initialize the toolbar
 	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_("NMEA 2000 Network"), _T("Display devices on NMEA 2000 Network"), NULL, -1, 0, this);
 
-	
-
 	// Need to notify Actisense NGT-1 what PGN's we transmit
 	// We only transmit PGN 59904 ISO Request
 	// Guessing that YachtDevices & socketCan ignore this (or at least NOP)
 	std::vector<int> pgnList{ 59904 };
 	CommDriverResult result;
-	//result = RegisterTXPGNs(driverHandle, pgnList);
+	result = RegisterTXPGNs(driverHandle, pgnList);
 
 	// Initialize NMEA 2000 Listeners
 
@@ -155,12 +152,10 @@ int NetworkPlugin::Init(void) {
 	paneInfo.Hide();
 	paneInfo.Dockable(FALSE);
 	auiManager->AddPane(networkDialog, paneInfo);
-	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnClose), NULL, this);
-	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkPlugin::OnActivate), NULL, this);
 	auiManager->Update();
 
 	// BUG BUG Superfluous
-	if (paneInfo.IsShown()) {
+	if ((paneInfo.IsOk()) && (paneInfo.IsShown())) {
 		isNetworkDialogVisible = TRUE;
 	}
 	else {
@@ -242,8 +237,8 @@ bool NetworkPlugin::DeInit(void) {
 	udpSocket->Close();
 
 	// Cleanup AUI
-	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
-	auiManager->Disconnect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
+	//auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
+	//auiManager->Disconnect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
 	auiManager->UnInit();
 	auiManager->DetachPane(networkDialog);
 	delete networkDialog;
@@ -255,8 +250,6 @@ void NetworkPlugin::LateInit(void) {
 	// BUG BUG Can be removed
 	wxMessageBox("Late Init");
 }
-
-
 
 // Timer sends heartbeat and network request PGN's
 void NetworkPlugin::OnTimer(wxTimerEvent &event) {
@@ -273,7 +266,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 
 	payload.clear();
 	payload.push_back(126996 & 0xFF);
@@ -282,7 +275,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 
 	payload.clear();
 	payload.push_back(126998 & 0xFF);
@@ -291,16 +284,8 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 
-}
-
-// Not sure when this is called
-void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
-	wxMessageBox(wxString::Format("plugin.cpp, OnPaneClose: %d", event.GetId()));
-
-	isNetworkDialogVisible = FALSE;
-	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 }
 
 // Called when OpenCPN is loading saved AUI pages
@@ -397,7 +382,7 @@ int NetworkPlugin::GetToolbarToolCount(void) {
 // Requires WANTS_CONFIG
 void NetworkPlugin::SetDefaults(void) {
 	// Is called when the plugin is enabled
-	wxLogMessage(_T("*** Set Defaults called"));
+	wxMessageBox("Set Defaults called");
 }
 
 // Invoked whenever a context menu item is selected
@@ -405,12 +390,10 @@ void NetworkPlugin::SetDefaults(void) {
 // BUG BUG Remove as not useful
 void NetworkPlugin::OnContextMenuItemCallback(int id) {
 	if (id == networkContextMenu) {	
-		isNetworkDialogVisible = !isNetworkDialogVisible;
-		auiManager->GetPane(_T("Network Plugin")).Show(isNetworkDialogVisible);
-		auiManager->Update();
-		SetToolbarItemState(id, isNetworkDialogVisible);
-
-
+		//isNetworkDialogVisible = !isNetworkDialogVisible;
+		//auiManager->GetPane(_T("Network Plugin")).Show(isNetworkDialogVisible);
+		//auiManager->Update();
+		//SetToolbarItemState(id, isNetworkDialogVisible);
 		wxMessageBox(wxString::Format(_T("Chart Tilt: %f"), GetCanvasTilt()));
 	}
 }
@@ -427,14 +410,6 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 	}
 }
 
-void NetworkPlugin::OnActivate(wxAuiManagerEvent& event) {
-	wxMessageBox(wxString::Format("NetworkPlugin, OnActivate: %d", event.GetId()));
-}
-
-void NetworkPlugin::OnClose(wxAuiManagerEvent& event) {
-	wxMessageBox(wxString::Format("NetworkPlugin, OnClose: %d", event.GetId()));
-}
-
 // Handle events from the dialog
 // BUG BUG Any events to handle ??
 void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
@@ -445,6 +420,7 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 			break;
 		case NETWORKDIALOG_CLOSE_EVENT:
 			// Synchronises the state of the toolbar icon
+			isNetworkDialogVisible = FALSE;
 			SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 			break;
 		case NETWORKDIALOG_PING_EVENT:

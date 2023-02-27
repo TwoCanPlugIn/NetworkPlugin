@@ -119,7 +119,6 @@ public:
 	void SetupToolboxPanel(int page_sel, wxNotebook* pnotebook);
 	void OnCloseToolboxPanel(int page_sel, int ok_apply_cancel);
 	void UpdateAuiStatus(void);
-	void OnPaneClose(wxAuiManagerEvent& event);
 	void LateInit(void);
 
 	// Event Handler
@@ -180,10 +179,6 @@ private:
 	// NMEA Configuration Information
 	void HandleN2K_126998(ObservedEvt ev);
 	std::shared_ptr<ObservableListener> listener_126998;
-
-	// Debug bullshit
-	void OnActivate(wxAuiManagerEvent& event);
-	void OnClose(wxAuiManagerEvent& event);
 
 };
 
