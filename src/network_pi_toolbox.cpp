@@ -28,10 +28,9 @@
 
 #include "network_pi_toolbox.h"
 
-
 // Constructor and destructor implementation
 NetworkToolbox::NetworkToolbox( wxWindow* parent) : NetworkToolboxBase(parent) {
-	// BUG BUG This could go in an OnInit event
+	// BUG BUG This could go in an OnInit event ??
 	settingsDirty = FALSE;
 }
 
@@ -39,7 +38,7 @@ NetworkToolbox::~NetworkToolbox() {
 	// Nothing to do in the destructor
 }
 
-void NetworkToolbox::GetInterfaces(void) {
+void NetworkToolbox::ListInterfaces(void) {
 	// Setup the NMEA 2000 Network interface
 	// BUG BUG This should go into the toolbox
 	activeDrivers.clear();
@@ -50,6 +49,8 @@ void NetworkToolbox::GetInterfaces(void) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
 			if (driver.second == "NMEA2000") {
 				cmbInterface->Append(activeDriver);
+				wxLogMessage(_T("Network Plugin, Interface: %s, Handle: %s, Protocol: %s"),
+					activeDriver, driver.first, driver.second);
 				//if (driverHandle == activeDriver) {
 				//	cmbInterface->SetStringSelection(activeDriver);
 				//}
@@ -59,7 +60,6 @@ void NetworkToolbox::GetInterfaces(void) {
 		}
 	}
 }
-
 
 void NetworkToolbox::OnInterfaceSelected(wxCommandEvent& event) {
 	settingsDirty = TRUE;
@@ -77,3 +77,36 @@ void NetworkToolbox::OnNetworkChanged(wxCommandEvent& event) {
 	settingsDirty = TRUE;
 }
 
+wxString NetworkToolbox::GetInterface(void) {
+	return cmbInterface->GetString(cmbInterface->GetSelection());
+}
+
+
+void NetworkToolbox::SetInterface(wxString interfaceName) {
+	cmbInterface->SetSelection(cmbInterface->FindString(interfaceName));
+}
+
+void NetworkToolbox::SetHeartbeat(bool heartbeatValue) {
+	chkHeartbeat->SetValue(heartbeatValue);
+}
+
+void NetworkToolbox::SetNetwork(bool networkValue) {
+	chkNetwork->SetValue(networkValue);
+}
+
+void NetworkToolbox::SetInterval(int intervalValue) {
+	spinInterval->SetValue(intervalValue);
+}
+
+
+bool NetworkToolbox::GetHeartbeat(void) {
+	return chkHeartbeat->IsChecked();
+}
+
+bool NetworkToolbox::GetNetwork(void) {
+	return chkNetwork->IsChecked();
+}
+
+int NetworkToolbox::GetInterval(void) {
+	return spinInterval->GetValue();
+}

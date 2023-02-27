@@ -29,11 +29,6 @@
 
 #include "network_pi_icons.h"
 
-//  Debug spew via UDP
-wxDatagramSocket *udpSocket;
-wxIPV4address addrLocal;
-wxIPV4address addrPeer;
-
 // The class factories, used to create and destroy instances of the PlugIn
 extern "C" DECL_EXP opencpn_plugin* create_pi(void *ppimgr) {
 	return new NetworkPlugin(ppimgr);
@@ -70,9 +65,11 @@ int NetworkPlugin::Init(void) {
 		configSettings->SetPath(_T("/PlugIns/Network"));
 		configSettings->Read(_T("Visible"), &isNetworkDialogVisible, FALSE);
 		configSettings->Read(_T("Interval"), &heartbeatInterval, 0);
-		configSettings->Read(_T("Interface"), &interfaceName, wxEmptyString);
+		wxString tempString;
+		configSettings->Read(_T("Interface"), &tempString, wxEmptyString);
+		driverHandle = std::string(tempString.mb_str());
 		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, FALSE);
-		configSettings->Read(_T("Request"), &sendRequest, FALSE);
+		configSettings->Read(_T("Request"), &sendNetwork, FALSE);
 	}
 
 	// Load toolbar icons
@@ -152,6 +149,7 @@ int NetworkPlugin::Init(void) {
 	paneInfo.Hide();
 	paneInfo.Dockable(FALSE);
 	auiManager->AddPane(networkDialog, paneInfo);
+	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
 	auiManager->Update();
 
 	// BUG BUG Superfluous
@@ -168,10 +166,6 @@ int NetworkPlugin::Init(void) {
 	// OpenCPN Settings Dialog toolbox extension
 	toolboxPanel = nullptr;
 
-	// Protect against reading the network list being updaed
-	// BUG BUG Is this used anywhere ??
-	lockNetworkData = new wxCriticalSection();
-	
 	// BUG BUG Investigating some different API's
 	// BUG BUG Remove
 	wxLogMessage(_T("*** Distance Unit: %s"),getUsrDistanceUnit_Plugin(-1));
@@ -186,16 +180,6 @@ int NetworkPlugin::Init(void) {
 	// BUG BUG GetPluginDataDir doesn't work the way I wold expect it to.
 	// It won't use the Plugin Common Name "Network Plugin", which is what I would have expected 
 
-	// Initialize Debug Spew via UDP
-	addrLocal.Hostname();
-	addrPeer.Hostname("127.0.0.1");
-	addrPeer.Service(3001);
-
-	udpSocket = new wxDatagramSocket(addrLocal, wxSOCKET_NONE);
-	if (!udpSocket->IsOk()) {
-		wxLogMessage(_T("ERROR: failed to create UDP peer socket"));
-	}
-
 	// Start a timer to transmit NMEA 2000 network queries
 	if (sendHeartbeat) {
 		heartbeatTimer = new wxTimer();
@@ -204,7 +188,7 @@ int NetworkPlugin::Init(void) {
 	}
 
 	// Notify OpenCPN of our capabilities and what events we want to receive callbacks for
-	return (WANTS_CONFIG | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | INSTALLS_CONTEXTMENU_ITEMS | USES_AUI_MANAGER | WANTS_CURSOR_LATLON | WANTS_OVERLAY_CALLBACK | INSTALLS_TOOLBOX_PAGE | WANTS_NMEA_EVENTS | WANTS_NMEA_SENTENCES | WANTS_AIS_SENTENCES | WANTS_LATE_INIT | WANTS_PLUGIN_MESSAGING);
+	return (WANTS_CONFIG | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | INSTALLS_CONTEXTMENU_ITEMS | USES_AUI_MANAGER | INSTALLS_TOOLBOX_PAGE);
 }
 
 // OpenCPN is either closing down, or has been disabled from the Preferences Dialog
@@ -217,9 +201,10 @@ bool NetworkPlugin::DeInit(void) {
 		configSettings->SetPath(_T("/PlugIns/Network"));
 		configSettings->Write(_T("Visible"), isNetworkDialogVisible);
 		configSettings->Write(_T("Interval"), heartbeatInterval);
-		configSettings->Write(_T("Interface"), interfaceName);
+		wxString tmpString(driverHandle.c_str(), wxConvUTF8);
+		configSettings->Write(_T("Interface"), tmpString);
 		configSettings->Write(_T("Heartbeat"), sendHeartbeat);
-		configSettings->Write(_T("Request"), sendRequest);
+		configSettings->Write(_T("Request"), sendNetwork);
 	}
 
 	// Stop the timer
@@ -229,26 +214,13 @@ bool NetworkPlugin::DeInit(void) {
 		delete heartbeatTimer;
 	}
 
-	// Cleanup the critical section lock
-	// BUG BUG Used anywhere ??
-	delete lockNetworkData;
-
-	// Cleanup Debug Spew
-	udpSocket->Close();
-
 	// Cleanup AUI
-	//auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkDialog::OnClose), NULL, this);
-	//auiManager->Disconnect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkDialog::OnActivate), NULL, this);
+	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
 	auiManager->UnInit();
 	auiManager->DetachPane(networkDialog);
 	delete networkDialog;
 
 	return TRUE;
-}
-
-void NetworkPlugin::LateInit(void) {
-	// BUG BUG Can be removed
-	wxMessageBox("Late Init");
 }
 
 // Timer sends heartbeat and network request PGN's
@@ -290,8 +262,6 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 // Called when OpenCPN is loading saved AUI pages
 void NetworkPlugin::UpdateAuiStatus(void) {
-	wxMessageBox(wxString::Format("network plugin, UpdateAuiStatus: IsOK: %d IsShown: %d", paneInfo.IsOk(), paneInfo.IsShown()));
-	
 	if ((paneInfo.IsOk()) && (paneInfo.IsShown())) {
 		isNetworkDialogVisible = TRUE;
 		SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
@@ -345,6 +315,11 @@ void NetworkPlugin::OnSetupOptions(void) {
 	// Create our toolbox panel and add it to the toolbox via the sizer
 	toolboxPanel = new NetworkToolbox(optionsWindow);
 	sizer->Add(toolboxPanel, 1, wxALL | wxEXPAND);
+	// Set toolbox UI values
+	toolboxPanel->SetInterval(heartbeatInterval);
+	toolboxPanel->SetHeartbeat(sendHeartbeat);
+	toolboxPanel->SetNetwork(sendNetwork);
+	toolboxPanel->SetInterface(driverHandle);
 }
 
 // I have no idea when this is called
@@ -359,11 +334,20 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 		// Save the settings
 		if (configSettings) {
 			configSettings->SetPath(_T("/PlugIns/Network"));
-			configSettings->Write(_T("Visible"), isNetworkDialogVisible);
-			configSettings->Write(_T("Interval"), heartbeatInterval);
-			configSettings->Write(_T("Interface"), interfaceName);
-			configSettings->Write(_T("Heartbeat"), sendHeartbeat);
-			configSettings->Write(_T("Request"), sendRequest);
+			
+			if (settingsDirty == TRUE) {
+
+				heartbeatInterval = toolboxPanel->GetInterval();
+				sendHeartbeat = toolboxPanel->GetHeartbeat();
+				sendNetwork = toolboxPanel->GetNetwork();
+				driverHandle = toolboxPanel->GetInterface();
+
+				configSettings->Write(_T("Interval"), heartbeatInterval);
+				wxString tmpString(driverHandle.c_str(), wxConvUTF8);
+				configSettings->Write(_T("Interface"), tmpString);
+				configSettings->Write(_T("Heartbeat"), sendHeartbeat);
+				configSettings->Write(_T("Request"), sendNetwork);
+			}
 		}
 	}
 
@@ -408,6 +392,12 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 		auiManager->Update();
 		SetToolbarItemState(id, isNetworkDialogVisible);
 	}
+}
+
+// Keep the toolbar in synch with the AUI Manager
+void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
+	isNetworkDialogVisible = FALSE;
+	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 }
 
 // Handle events from the dialog

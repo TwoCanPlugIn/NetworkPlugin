@@ -30,13 +30,7 @@
 
 // Necessary wxWidgets headers
 #include <wx/graphics.h>
-
 #include <wx/math.h>
-
-#include <wx/aui/aui.h>
-
-#include <wx/socket.h>
-
 #include <wx/config.h>
 #include <wx/fileconf.h>
 
@@ -46,10 +40,10 @@
 // OpenCPN include file
 #include "ocpn_plugin.h"
 
-// NMEA 2000 Network 
+// Displays Grid View of NMEA 2000 devices 
 #include "network_pi_dialog.h"
 
-// Open CPN Toolbox Panel used for configuration settings
+// Toolbox Panel used for configuration settings
 #include "network_pi_toolbox.h"
 
 // Plugin receives events from the NMEA 2000 Network dialog
@@ -59,10 +53,6 @@ const int NETWORKDIALOG_CLOSE_EVENT = wxID_HIGHEST + 2;
 const int NETWORKDIALOG_PING_EVENT = wxID_HIGHEST + 3;
 
 // Globally accessible variables
-
-// Protect access to list of network devices
-// BUG BUG Is this used anywhere ??
-wxCriticalSection *lockNetworkData;
 
 // Array of network devices & their product and device information
 NetworkInformation networkInformation[253];
@@ -83,10 +73,10 @@ int heartbeatInterval;
 bool sendHeartbeat;
 
 // Whether to request PGN 126996, 126998
-bool sendRequest;
+bool sendNetwork;
 
 // The NMEA 2000 interface
-wxString interfaceName;
+DriverHandle driverHandle;
 
 // The Network plugin
 class NetworkPlugin : public opencpn_plugin_118, public wxEvtHandler {
@@ -119,7 +109,8 @@ public:
 	void SetupToolboxPanel(int page_sel, wxNotebook* pnotebook);
 	void OnCloseToolboxPanel(int page_sel, int ok_apply_cancel);
 	void UpdateAuiStatus(void);
-	void LateInit(void);
+
+	void OnPaneClose(wxAuiManagerEvent& event);
 
 	// Event Handler
 	void OnPluginEvent(wxCommandEvent &event);
@@ -151,9 +142,6 @@ private:
 	// Timer & Timer Events
 	wxTimer *heartbeatTimer;
 	void OnTimer(wxTimerEvent &event);
-
-	// NMEA 2000
-	DriverHandle driverHandle;
 
 	// index into the payload.
 	// The payload is in Actisense format, so as I've just pasted code from twocan, 

@@ -50,7 +50,6 @@ NetworkDialog::NetworkDialog(wxWindow* parent, wxEvtHandler *handler) : NetworkD
 		// Renumber row labels to match network address 0 - 253
 		gridNetwork->SetRowLabelValue(i, std::to_string(i));
 	}
-
 	
 }
 

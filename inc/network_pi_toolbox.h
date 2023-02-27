@@ -42,8 +42,19 @@ class NetworkToolbox : public NetworkToolboxBase {
 public:
 	NetworkToolbox(wxWindow* parent);
 	~NetworkToolbox();
-	
-	
+
+	// Getters
+	wxString GetInterface(void);
+	bool GetHeartbeat(void);
+	bool GetNetwork(void);
+	int GetInterval(void);
+
+	// Setters
+	void SetInterface(wxString interfaceName);
+	void SetHeartbeat(bool heartbeatValue);
+	void SetNetwork(bool networkValue);
+	void SetInterval(int intervalValue);
+
 protected:
 	// Overridden methods from the base class
 	void OnInterfaceSelected(wxCommandEvent& event);
@@ -52,7 +63,7 @@ protected:
 	void OnNetworkChanged(wxCommandEvent& event);
 
 private:
-	void GetInterfaces(void);
+	void ListInterfaces(void);
 	std::vector<DriverHandle> activeDrivers;
 };
 
