@@ -57,6 +57,7 @@ public:
 
 protected:
 	// Overridden methods from the base class
+	void OnInit(wxInitDialogEvent& event);
 	void OnInterfaceSelected(wxCommandEvent& event);
 	void OnIntervaChanged(wxSpinEvent& event);
 	void OnHeartbeatChanged(wxCommandEvent& event);
@@ -64,7 +65,6 @@ protected:
 
 private:
 	void ListInterfaces(void);
-	std::vector<DriverHandle> activeDrivers;
 };
 
 #endif

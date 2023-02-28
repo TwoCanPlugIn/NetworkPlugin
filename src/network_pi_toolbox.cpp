@@ -32,16 +32,19 @@
 NetworkToolbox::NetworkToolbox( wxWindow* parent) : NetworkToolboxBase(parent) {
 	// BUG BUG This could go in an OnInit event ??
 	settingsDirty = FALSE;
-	ListInterfaces();
 }
 
 NetworkToolbox::~NetworkToolbox() {
 	// Nothing to do in the destructor
 }
 
+void NetworkToolbox::OnInit(wxInitDialogEvent& event) {
+	wxMessageBox(_T("Toolbox On Init"));
+}
+
 void NetworkToolbox::ListInterfaces(void) {
 	// Setup the NMEA 2000 Network interface
-	activeDrivers.clear();
+	std::vector<DriverHandle> activeDrivers;
 	activeDrivers = GetActiveDrivers();
 
 	// Enumerate the drivers and select a NMEA 2000 network connection
@@ -83,7 +86,8 @@ wxString NetworkToolbox::GetInterface(void) {
 
 
 void NetworkToolbox::SetInterface(wxString interfaceName) {
-	cmbInterface->SetSelection(cmbInterface->FindString(interfaceName));
+	ListInterfaces();
+	cmbInterface->SetSelection(cmbInterface->FindString(interfaceName, FALSE));
 }
 
 void NetworkToolbox::SetHeartbeat(bool heartbeatValue) {
@@ -97,7 +101,6 @@ void NetworkToolbox::SetNetwork(bool networkValue) {
 void NetworkToolbox::SetInterval(int intervalValue) {
 	spinInterval->SetValue(intervalValue);
 }
-
 
 bool NetworkToolbox::GetHeartbeat(void) {
 	return chkHeartbeat->IsChecked();

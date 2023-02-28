@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Oct 26 2018)
+// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -18,7 +18,9 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	labelInterface->Wrap( -1 );
 	sizerPanel->Add( labelInterface, 0, wxALL, 5 );
 
-	cmbInterface = new wxComboBox( this, wxID_ANY, wxT("Combo!"), wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
+	wxArrayString cmbInterfaceChoices;
+	cmbInterface = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, cmbInterfaceChoices, 0 );
+	cmbInterface->SetSelection( 0 );
 	sizerPanel->Add( cmbInterface, 0, wxALL, 5 );
 
 	labelHeartbeat = new wxStaticText( this, wxID_ANY, wxT("Heartbeat Interval"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -39,7 +41,8 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	this->Layout();
 
 	// Connect Events
-	cmbInterface->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
+	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkToolboxBase::OnInit ) );
+	cmbInterface->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceChanged ), NULL, this );
 	spinInterval->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
 	chkHeartbeat->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
 	chkNetwork->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
@@ -48,7 +51,8 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 NetworkToolboxBase::~NetworkToolboxBase()
 {
 	// Disconnect Events
-	cmbInterface->Disconnect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceSelected ), NULL, this );
+	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkToolboxBase::OnInit ) );
+	cmbInterface->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceChanged ), NULL, this );
 	spinInterval->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
 	chkHeartbeat->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
 	chkNetwork->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );

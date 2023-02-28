@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Oct 26 2018)
+// C++ code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO *NOT* EDIT THIS FILE!
@@ -15,7 +15,7 @@
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
-#include <wx/combobox.h>
+#include <wx/choice.h>
 #include <wx/spinctrl.h>
 #include <wx/checkbox.h>
 #include <wx/sizer.h>
@@ -33,14 +33,15 @@ class NetworkToolboxBase : public wxPanel
 
 	protected:
 		wxStaticText* labelInterface;
-		wxComboBox* cmbInterface;
+		wxChoice* cmbInterface;
 		wxStaticText* labelHeartbeat;
 		wxSpinCtrl* spinInterval;
 		wxCheckBox* chkHeartbeat;
 		wxCheckBox* chkNetwork;
 
-		// Virtual event handlers, overide them in your derived class
-		virtual void OnInterfaceSelected( wxCommandEvent& event ) { event.Skip(); }
+		// Virtual event handlers, override them in your derived class
+		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
+		virtual void OnInterfaceChanged( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnIntervaChanged( wxSpinEvent& event ) { event.Skip(); }
 		virtual void OnHeartbeatChanged( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnNetworkChanged( wxCommandEvent& event ) { event.Skip(); }
@@ -49,6 +50,7 @@ class NetworkToolboxBase : public wxPanel
 	public:
 
 		NetworkToolboxBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,328 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
+
 		~NetworkToolboxBase();
 
 };
