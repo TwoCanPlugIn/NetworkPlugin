@@ -47,19 +47,20 @@ void NetworkToolbox::ListInterfaces(void) {
 	// Setup the NMEA 2000 Network interface
 	std::vector<DriverHandle> activeDrivers;
 	activeDrivers = GetActiveDrivers();
-
+	int i = 0;
 	// Enumerate the drivers and select a NMEA 2000 network connection
 	for (auto const& activeDriver : activeDrivers) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
 			wxLogMessage(_T("Network Plugin, Interface: %s, Handle: %s, Protocol: %s"),
 				activeDriver, driver.first, driver.second);
 			if (driver.second == "nmea2000") {
-				cmbInterface->Append(activeDriver);
+				cmbInterface->Append(wxString::Format("%d-%s", i, activeDriver));
 				//if (driverHandle == activeDriver) {
 				//	cmbInterface->SetStringSelection(activeDriver);
 				//}
 				// BUG BUG Need to prettify the display. 
 				// This is just stupid. nmea2000!@!COM6
+				i++;
 			}
 		}
 	}

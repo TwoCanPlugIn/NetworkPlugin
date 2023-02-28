@@ -355,9 +355,9 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 	}
 
 	// Cleanup the toolbox
-	DeleteOptionsPage(optionsWindow);
 	delete toolboxPanel;
 	toolboxPanel = nullptr;
+	DeleteOptionsPage(optionsWindow);
 }
 
 // Return the number of toolbar icons the plugin installs
