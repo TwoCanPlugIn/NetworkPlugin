@@ -38,6 +38,7 @@ NetworkToolbox::~NetworkToolbox() {
 	// Nothing to do in the destructor
 }
 
+// BUG BUG Never gets called !
 void NetworkToolbox::OnInit(wxInitDialogEvent& event) {
 	wxMessageBox(_T("Toolbox On Init"));
 }
@@ -52,7 +53,7 @@ void NetworkToolbox::ListInterfaces(void) {
 		for (auto const& driver : GetAttributes(activeDriver)) {
 			wxLogMessage(_T("Network Plugin, Interface: %s, Handle: %s, Protocol: %s"),
 				activeDriver, driver.first, driver.second);
-			if (driver.second == "NMEA2000") {
+			if (driver.second == "nmea2000") {
 				cmbInterface->Append(activeDriver);
 				//if (driverHandle == activeDriver) {
 				//	cmbInterface->SetStringSelection(activeDriver);
