@@ -50,7 +50,6 @@ NetworkDialog::NetworkDialog(wxWindow* parent, wxEvtHandler *handler) : NetworkD
 		// Renumber row labels to match network address 0 - 253
 		gridNetwork->SetRowLabelValue(i, std::to_string(i));
 	}
-	
 }
 
 NetworkDialog::~NetworkDialog() {
@@ -60,18 +59,11 @@ NetworkDialog::~NetworkDialog() {
 // BUG BUG Doesn't seem to be called
 void NetworkDialog::OnInit(wxInitDialogEvent& event) {
 	wxMessageBox(wxString::Format("NetworkDialog, OnInit: %d", event.GetId()));
-	event.Skip();
-}
-
-// BUG BUG Doesn't seem to be called
-void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
-	wxMessageBox(wxString::Format("NetworkDialog, OnActivate: %d", event.GetId()));
-
 	// Populate the Data Grid
 
 	for (int i = 0; i < 254; i++) {
 		// No need to iterate over non-existent entries
-		if ((networkInformation[i].deviceInformation.uniqueId > 0) || (strlen(networkInformation[i].productInformation.modelId) > 0) ) {
+		if ((networkInformation[i].deviceInformation.uniqueId > 0) || (strlen(networkInformation[i].productInformation.modelId) > 0)) {
 			gridNetwork->SetCellValue(i, 0, wxString::Format("%lu", networkInformation[i].deviceInformation.uniqueId));
 			// Look up the manufacturer name
 			//std::unordered_map<int, std::string>::iterator it = deviceManufacturers.find(networkInfoirmation[i].manufacturerId);
@@ -79,7 +71,7 @@ void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
 			//	gridNetwork->SetCellValue(i, 1, it->second);
 			//}
 			//else {
-				gridNetwork->SetCellValue(i, 1, wxString::Format("%d", networkInformation[i].deviceInformation.manufacturerId));
+			gridNetwork->SetCellValue(i, 1, wxString::Format("%d", networkInformation[i].deviceInformation.manufacturerId));
 			//}
 			gridNetwork->SetCellValue(i, 2, wxString::Format("%s", networkInformation[i].productInformation.modelId));
 			// We don't receive our own heartbeats so ignore our time stamp value
@@ -95,17 +87,7 @@ void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
 	event.Skip();
 }
 
-// BUG BUG Doesn't seem to work
-void NetworkDialog::OnClose(wxAuiManagerEvent& event) {
-	wxMessageBox(wxString::Format("NetworkDialog, OnClose: %d", event.GetId()));
 
-	// Notify the parent we have closed, so that it can update its toolbar state
-	
-	wxCommandEvent *closeEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT, NETWORKDIALOG_CLOSE_EVENT);
-	wxQueueEvent(eventHandler, closeEvent);
-
-	event.Skip();
-}
 
 // BUG BUG Untested
 void NetworkDialog::OnRightClick(wxGridEvent &event) {

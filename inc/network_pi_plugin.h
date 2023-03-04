@@ -33,6 +33,7 @@
 #include <wx/math.h>
 #include <wx/config.h>
 #include <wx/fileconf.h>
+#include <wx/aui/aui.h>
 
 // Defines version numbers for this plugin
 #include "version.h"
@@ -109,8 +110,11 @@ public:
 	void SetupToolboxPanel(int page_sel, wxNotebook* pnotebook);
 	void OnCloseToolboxPanel(int page_sel, int ok_apply_cancel);
 	void UpdateAuiStatus(void);
+	void LateInit(void);
 
 	void OnPaneClose(wxAuiManagerEvent& event);
+	void OnPaneActivate(wxAuiManagerEvent& event);
+
 
 	// Event Handler
 	void OnPluginEvent(wxCommandEvent &event);
@@ -142,6 +146,9 @@ private:
 	// Timer & Timer Events
 	wxTimer *heartbeatTimer;
 	void OnTimer(wxTimerEvent &event);
+
+	// Get's the first available NMEA 2000 network interface
+	wxString GetNetworkInterface(void);
 
 	// index into the payload.
 	// The payload is in Actisense format, so as I've just pasted code from twocan, 

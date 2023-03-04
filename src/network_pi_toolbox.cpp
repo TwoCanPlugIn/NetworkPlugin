@@ -59,7 +59,8 @@ void NetworkToolbox::ListInterfaces(void) {
 				//	cmbInterface->SetStringSelection(activeDriver);
 				//}
 				// BUG BUG Need to prettify the display. 
-				// This is just stupid. nmea2000!@!COM6
+				// This is just stupid. nmea2000!@!socketCAN
+				// For Actisense NGT-1 Serial Devices, not as stupid... nmea2000!@!COM6
 				i++;
 			}
 		}
