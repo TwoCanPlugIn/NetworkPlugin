@@ -115,7 +115,6 @@ public:
 	void OnPaneClose(wxAuiManagerEvent& event);
 	void OnPaneActivate(wxAuiManagerEvent& event);
 
-
 	// Event Handler
 	void OnPluginEvent(wxCommandEvent &event);
 		
@@ -178,4 +177,3 @@ private:
 };
 
 #endif 
-

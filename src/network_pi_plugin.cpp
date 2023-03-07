@@ -44,8 +44,6 @@ NetworkPlugin::NetworkPlugin(void *ppimgr) : opencpn_plugin_118(ppimgr), wxEvtHa
 	// Load the plugin bitmaps/icons 
 	initialize_images();
 
-	// Initialize Advanced User Interface Manager (AUI)
-	auiManager = GetFrameAuiManager();
 }
 
 // Destructor
@@ -59,6 +57,9 @@ int NetworkPlugin::Init(void) {
 
 	// Maintain a reference to the OpenCPN configuration object 
 	configSettings = GetOCPNConfigObject();
+
+	// Maintain a reference to the Advanced User Interface Manager (AUI)
+	auiManager = GetFrameAuiManager();
 
 	// Load the configuration settings
 	if (configSettings) {
@@ -297,15 +298,15 @@ int NetworkPlugin::GetPlugInVersionMinor() {
 
 // Return descriptions for the Plugin
 wxString NetworkPlugin::GetCommonName() {
-	return _T("Network Plugin");
+	return _T(PLUGIN_COMMON_NAME);
 }
 
 wxString NetworkPlugin::GetShortDescription() {
-	return _T("Network Plugin, Displays NMEA 2000 Network");
+	return _T(PLUGIN_SHORT_DESCRIPTION);
 }
 
 wxString NetworkPlugin::GetLongDescription() {
-	return _T("Network Plugin, Displays information about the devices on the NMEA 2000 Network");
+	return _T(PLUGIN_LONG_DESCRIPTION);
 }
 
 // 32x32 pixel image displayed in the Toolbox Plugins page
@@ -411,7 +412,7 @@ void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
 	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 }
 
-// Testing
+// Intent is to force the loading of the network map into the dialog
 void NetworkPlugin::OnPaneActivate(wxAuiManagerEvent& event) {
 	wxMessageBox("AUI Activate");
 }
@@ -426,6 +427,7 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 			break;
 		case NETWORKDIALOG_CLOSE_EVENT:
 			// Synchronises the state of the toolbar icon
+			wxLogMessage(_T("**** DEBUG DIALOG_CLOSE EVENT ***"));
 			isNetworkDialogVisible = FALSE;
 			SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 			break;
