@@ -326,7 +326,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	result = WriteCommDriverN2K(driverHandle, 126996, 255, 5, sharedPointer);
 	wxLogMessage(_T("Network Plugin, Transmit PGN 126996: %d"), result);
 }
 
