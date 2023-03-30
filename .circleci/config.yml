@@ -20,20 +20,36 @@ workflows:
         jobs:
         - build-armhf-stretch:
             <<: *std-filters
+## Derecated in favour of ubuntu-armhf:18.04 build - 14/01/2022
+##        - build-armhf-raspbian-buster:
+##            <<: *std-filters
         - build-armhf-ubuntu-buster:
             <<: *std-filters
         - build-armhf-debian-buster:
             <<: *std-filters
         - build-arm64-debian-buster:
             <<: *std-filters
+## Ready to build gtk3 version of armhf debian buster
         - build-armhf-debian-buster-gtk3:
             <<: *std-filters
+## Derecated in favour of ubuntu-armhf:20.04 build - 14/01/2022
+##        - build-armhf-bullseye:
+##            <<: *std-filters
         - build-armhf-debian-bullseye:
             <<: *std-filters
         - build-arm64-debian-bullseye:
             <<: *std-filters
+## Currently circleci does not build armf64 correctly due to no suitable docker image
+##        - build-armhf-bionic-64:
+##            <<: *std-filters
         - build-armhf-ubuntu-focal:
             <<: *std-filters
+## Not required as flatpak build used instead - 14/01/2022
+##        - build-armhf-ubuntu-focal-64:
+##            <<: *std-filters
+## Removed as no suitable python3 version for xenial available - 19/01/2022
+##        - build-xenial:
+##            <<: *std-filters
         - build-bionic:
             <<: *std-filters
         - build-bionic-gtk3:
@@ -41,7 +57,7 @@ workflows:
         - build-focal-gtk3:
             <<: *std-filters
         - build-jammy:
-            <<: *std-filters 
+            <<: *std-filters
         - build-buster:
             <<: *std-filters
         - build-bullseye:
@@ -50,14 +66,25 @@ workflows:
             <<: *std-filters
         - build-flatpak-x86-2208:
             <<: *std-filters
-        - build-flatpak-x86-1808:
-            <<: *std-filters
+## Been removed from allowable environments
+##        - build-flatpak-x86-2008-beta:
+##            <<: *std-filters
+## Obsolete not available anymore
+##        - build-flatpak-x86-1808:
+##            <<: *std-filters
         - build-flatpak-arm64:
             <<: *std-filters
         - build-macos:
-            <<: *std-filters
+             <<: *std-filters
         - build-macos-wx32:
-            <<: *std-filters
+             <<: *std-filters
+#        - build-android-arm64:
+#             <<: *std-filters
+#        - build-android-armhf:
+#             <<: *std-filters
+## Work in progress to allow circleci to do windows builds
+##        - build-msvc-2022:
+##            <<: *std-filters
 
 orbs:
     cloudsmith: cloudsmith/cloudsmith@1.0.4
@@ -88,6 +115,12 @@ commands:
                     - cloudsmith/install-cli
                 - run: ci/cloudsmith-upload.sh
 
+    # if you want to use a local proxy add Acquire::http::Proxy \"http://192.168.1.1:3142\"; to a file called circleci-cache/apt-proxy. This will require
+    #    --volume {your local directory}/circleci-cache:/home/circleci/circleci-cache
+    # on the circleci local command line so that the docker image script can have access to the directory
+    # if you are on a slow or data limited internet link you can put a copy of master.zip here, or allow one to be downloaded by the script, as it is used by the android builds to
+    # provide the wxWidgets QT information.
+
 jobs:
     build-armhf-stretch:
         machine:
@@ -95,6 +128,22 @@ jobs:
         environment:
         - OCPN_TARGET=stretch-armhf
         - DOCKER_IMAGE=balenalib/raspberry-pi-debian:stretch
+        - BUILD_FLAGS=-j3
+        - BUILD_ENV=raspbian
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: chmod a+x ./ci/*.sh
+        - run:
+            command: ci/circleci-build-raspbian-armhf.sh
+            no_output_timeout: 30m
+        - deploy-code
+    build-armhf-raspbian-buster:
+        machine:
+            image: ubuntu-2004:202104-01
+        environment:
+        - OCPN_TARGET=buster-armhf
+        - DOCKER_IMAGE=balenalib/raspberry-pi-debian:buster
         - BUILD_FLAGS=-j3
         - BUILD_ENV=raspbian
         - DEPLOY_USE_ORB: true
@@ -154,6 +203,23 @@ jobs:
             command: ci/circleci-build-raspbian-armhf.sh
             no_output_timeout: 30m
         - deploy-code
+    build-armhf-bullseye:
+        machine:
+            image: ubuntu-2004:202104-01
+        environment:
+        - OCPN_TARGET=bullseye-armhf
+        - DOCKER_IMAGE=balenalib/raspberry-pi-debian:bullseye
+        - BUILD_FLAGS=-j3
+        - BUILD_ENV=raspbian
+        - BUILD_GTK3: true
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: chmod a+x ./ci/*.sh
+        - run:
+            command: ci/circleci-build-raspbian-armhf.sh
+            no_output_timeout: 30m
+        - deploy-code
     build-armhf-debian-bullseye:
         machine:
             image: ubuntu-2004:202104-01
@@ -204,7 +270,24 @@ jobs:
             command: ci/circleci-build-raspbian-armhf.sh
             no_output_timeout: 30m
         - deploy-code
-     build-armhf-ubuntu-focal:
+    build-armhf-bionic-64:
+        machine:
+            image: ubuntu-2004:202104-01
+        environment:
+        - OCPN_TARGET=bionic-arm64
+        - OCPN_BRANCH=master
+        - DOCKER_IMAGE=arm64v8/ubuntu:18.04
+        - BUILD_FLAGS=-j3
+        - BUILD_ENV=ubuntu
+        - DEPLOY_USE_ORB: false
+        steps:
+        - checkout
+        - run: chmod a+x ./ci/*.sh
+        - run:
+            command: ci/circleci-build-raspbian-armhf.sh
+            no_output_timeout: 30m
+        - deploy-code
+    build-armhf-ubuntu-focal:
         machine:
             image: ubuntu-2004:202104-01
         environment:
@@ -223,6 +306,44 @@ jobs:
         - run:
             command: ci/circleci-build-raspbian-armhf.sh
             no_output_timeout: 30m
+        - deploy-code
+    build-armhf-ubuntu-focal-64:
+        machine:
+            image: ubuntu-2004:202104-01
+        environment:
+        - OCPN_TARGET=focal-arm64
+        - OCPN_BRANCH=master
+        - DOCKER_IMAGE=arm64v8/ubuntu:20.04
+        - BUILD_FLAGS=-j3
+        - BUILD_ENV=ubuntu
+        - TZ=America/New_York
+        - DEBIAN_FRONTEND=noninteractive
+        - BUILD_GTK3: true
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: chmod a+x ./ci/*.sh
+        - run:
+            command: ci/circleci-build-raspbian-armhf.sh
+            no_output_timeout: 30m
+        - deploy-code
+    build-xenial:
+        docker:
+        - image: circleci/buildpack-deps:xenial-scm
+        environment:
+        - OCPN_TARGET:  xenial
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: >
+            echo "deb-src http://us.archive.ubuntu.com/ubuntu/ xenial main"
+            | sudo tee -a /etc/apt/sources.list
+        - run: >
+            echo "deb-src http://us.archive.ubuntu.com/ubuntu/ xenial-updates main"
+            | sudo tee -a /etc/apt/sources.list
+        - run: cat /etc/apt/sources.list
+        - run: chmod a+x ci/*.sh
+        - run: ci/circleci-build-debian.sh
         - deploy-code
     build-bionic:
         docker:
@@ -295,7 +416,7 @@ jobs:
             echo "deb-src http://us.archive.ubuntu.com/ubuntu/ jammy main" | sudo tee -a /etc/apt/sources.list
         - run: >
             echo "deb-src http://us.archive.ubuntu.com/ubuntu/ jammy-updates main" | sudo tee -a /etc/apt/sources.list
-            - run: >
+        - run: >
             echo "deb [trusted=yes] https://ppa.launchpadcontent.net/bdbcat/opencpn/ubuntu/ jammy main" | sudo tee -a /etc/apt/sources.list
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
@@ -355,12 +476,43 @@ jobs:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
             - run: ci/cloudsmith-upload.sh
+    build-flatpak-x86-1808:
+        machine:
+            image: ubuntu-2004:202010-01
+        environment:
+        - OCPN_TARGET:  flatpak
+        - FLATPAK_BRANCH: stable
+        - CLOUDSMITH_PKG_EXT: gz
+        - SDK_VER: 18.08
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: chmod a+x ci/*.sh
+        - run: bash ci/circleci-build-flatpak.sh
+        - deploy-code
     build-flatpak-x86-2008:
         machine:
             image: ubuntu-2004:202010-01
         environment:
         - OCPN_TARGET:  flatpak
         - FLATPAK_BRANCH: stable
+        - CLOUDSMITH_PKG_EXT: gz
+        - SDK_VER: 20.08
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: chmod a+x ci/*.sh
+        - run:
+            command: bash ci/circleci-build-flatpak.sh
+            no_output_timeout: 30m
+        - deploy-code
+    build-flatpak-x86-2008-beta:
+        machine:
+            image: ubuntu-2004:202010-01
+        environment:
+        - OCPN_TARGET:  flatpak
+        - FLATPAK_BRANCH: beta
+        - WX_VER: 32
         - CLOUDSMITH_PKG_EXT: gz
         - SDK_VER: 20.08
         - DEPLOY_USE_ORB: true
@@ -428,3 +580,40 @@ jobs:
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-macos.sh
         - deploy-code
+    build-android-arm64:
+        docker:
+        - image: cimg/android:2021.10.2-ndk
+        resource_class: large
+        environment:
+        - OCPN_TARGET:  android-arm64
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: chmod a+x ci/*.sh
+        - run: bash ci/circleci-build-android-arm64.sh
+        - deploy-code:
+            install-python: true
+    build-android-armhf:
+        docker:
+        - image: cimg/android:2021.10.2-ndk
+        resource_class: large
+        environment:
+        - OCPN_TARGET:  android-armhf
+        steps:
+        - checkout
+        - run: chmod a+x ci/*.sh
+        - run: bash ci/circleci-build-android-armhf.sh
+        - deploy-code:
+            install-python: true
+    build-msvc-2022:
+        executor: win/server-2022
+        environment:
+        - OCPN_TARGET: MSVC
+        - MSVC_VERSION: 2022
+        - WX_VER: 32
+        - DEPLOY_USE_ORB: true
+        steps:
+        - checkout
+        - run: ci/circleci-build-msvc
+        - deploy-code:
+            install-python: true
