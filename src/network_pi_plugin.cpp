@@ -248,7 +248,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
 	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
-	wxLogMessage(_T("Network Plugin, Write 60928: %d"), result);
+	wxLogMessage(_T("Network Plugin, Write ISO Request for 60928: %d"), result);
 
 	payload.clear();
 	payload.push_back(126996 & 0xFF);
@@ -258,7 +258,8 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
 	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
-	wxLogMessage(_T("Network Plugin, Write 126996: %d"), result);
+	wxLogMessage(_T("Network Plugin, Write ISO Request for 126996: %d"), result);
+	
 	payload.clear();
 	payload.push_back(126998 & 0xFF);
 	payload.push_back((126998 >> 8) & 0xFF);
@@ -267,7 +268,66 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
 	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
-	wxLogMessage(_T("Network Plugin, Write 126998: %d"), result);
+	wxLogMessage(_T("Network Plugin, Write ISO Request for 126998: %d"), result);
+
+
+	payload.clear();
+
+	unsigned short dbver = 2100;
+	payload.push_back(dbver & 0xFF);
+	payload.push_back((dbver >> 8) & 0xFF);
+
+	unsigned short pcode = 1234;
+	payload.push_back(pcode & 0xFF);
+	payload.push_back((pcode >> 8) & 0xFF);
+
+	// Model Id
+	payload.push_back(0x41);
+	payload.push_back(0x41);
+	payload.push_back(0x41);
+	payload.push_back(0x41);
+
+	for (size_t i = 0; i < 28; i++) {
+		payload.push_back(0x20);
+	}
+	
+	// Software Version Bytes [36] - [67]
+	payload.push_back(0x42);
+	payload.push_back(0x42);
+	payload.push_back(0x42);
+	payload.push_back(0x42);
+
+	for (size_t i = 0; i < 28; i++) {
+		payload.push_back(0x20);
+	}
+
+	// Model Version Bytes [68] - [99]
+	payload.push_back(0x43);
+	payload.push_back(0x43);
+	payload.push_back(0x43);
+	payload.push_back(0x43);
+	
+	for (size_t i = 0; i < 28; i++) {
+		payload.push_back(0x20);
+	}
+
+	// Serial Number Bytes [100] - [131] - Let's reuse our uniqueId as the serial number
+	payload.push_back(0x44);
+	payload.push_back(0x44);
+	payload.push_back(0x44);
+	payload.push_back(0x44);
+
+	for (size_t i = 0; i < 28; i++) {
+		payload.push_back(0x20);
+	}
+	payload.push_back(0x01); //CONST_CERTIFICATION_LEVEL;
+
+	payload.push_back(0x01); // CONST_LOAD_EQUIVALENCY;
+
+	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
+
+	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
+	wxLogMessage(_T("Network Plugin, Transmit PGN 126996: %d"), result);
 }
 
 // Called when OpenCPN is loading saved AUI pages
