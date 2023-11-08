@@ -95,6 +95,7 @@ int NetworkPlugin::Init(void) {
 
 	// Experimental, listen for All NMEA 2000 Messages
 	wxDEFINE_EVENT(EVT_N2K, ObservedEvt);
+	wxLogMessage(_T("Initializing Listeners: %d"), parameterGroupNumbers.size());
 	for (auto it : parameterGroupNumbers) {
 		wxLogMessage(_T("Added Listener: %d"), it);
 		NMEA2000Id dummy = NMEA2000Id(it);
