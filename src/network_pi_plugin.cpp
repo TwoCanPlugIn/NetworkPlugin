@@ -559,7 +559,7 @@ wxString NetworkPlugin::GetNetworkInterface(void) {
 void NetworkPlugin::HandleN2K(ObservedEvt ev) {
 	std::vector<uint8_t>payload = GetN2000Payload(NMEA2000Id(123456), ev);
 	unsigned int pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
-	wxLogMessage(_T("Event ID: %d, String: %s, PGN: %d", ev.GetId(), ev.GetString(), pgn));
+	wxLogMessage(_T("Event ID: %d, String: %s, PGN: %d"), ev.GetId(), ev.GetString(), pgn);
 }	
 
 // PGN 60928 ISO Address Claim
