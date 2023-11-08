@@ -93,6 +93,18 @@ int NetworkPlugin::Init(void) {
 
 	// Initialize NMEA 2000 Listeners
 
+	// Experimental, listen for All NMEA 2000 Messages
+	wxDEFINE_EVENT(EVT_N2K, ObservedEvt);
+	for (auto it : parameterGroupNumbers) {
+		listeners.push_back(std::move(GetListener(NMEA2000Id(it), EVT_N2K, this)));
+	}
+
+	Bind(EVT_N2K, [&](ObservedEvt ev) {
+		HandleN2K(ev);
+	});
+
+	/*
+
 	// PGN 60928 ISO Address Claim
 	wxDEFINE_EVENT(EVT_N2K_60928, ObservedEvt);
 	NMEA2000Id id_60928 = NMEA2000Id(60928);
@@ -132,6 +144,8 @@ int NetworkPlugin::Init(void) {
 	Bind(EVT_N2K_126464, [&](ObservedEvt ev) {
 		HandleN2K_126464(ev);
 	});
+
+	*/
 
 	// Example of adding context menu items including separators etc.
 	// BUG BUG Remove ??
@@ -538,6 +552,12 @@ wxString NetworkPlugin::GetNetworkInterface(void) {
 
 // To simplify parsing as these are copied from twocan plugin, 
 // use an index into the "real" payload at byte 13 
+
+void NetworkPlugin::HandleN2K(ObservedEvt ev) {
+	wxMessageBox(wxString::Format("%d", ev.GetId()));
+	wxMessageBox(ev.GetString());
+	std::vector<uint8_t>payload = GetN2000Payload(NMEA2000Id(123456), ev);
+}
 
 // PGN 60928 ISO Address Claim
 void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
