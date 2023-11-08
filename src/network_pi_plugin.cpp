@@ -557,10 +557,10 @@ wxString NetworkPlugin::GetNetworkInterface(void) {
 // use an index into the "real" payload at byte 13 
 
 void NetworkPlugin::HandleN2K(ObservedEvt ev) {
-	wxMessageBox(wxString::Format("%d", ev.GetId()));
-	wxMessageBox(ev.GetString());
 	std::vector<uint8_t>payload = GetN2000Payload(NMEA2000Id(123456), ev);
-}
+	unsigned int pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
+	wxLogMessage(_T("Event ID: %d, String: %s, PGN: %d", ev.GetId(), ev.GetString(), pgn));
+}	
 
 // PGN 60928 ISO Address Claim
 void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
