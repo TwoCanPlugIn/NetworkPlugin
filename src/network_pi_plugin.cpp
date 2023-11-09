@@ -93,13 +93,11 @@ int NetworkPlugin::Init(void) {
 
 	// Initialize NMEA 2000 Listeners
 
-	// Experimental, listen for All NMEA 2000 Messages
+	// Experimental, listen for all NMEA 2000 Messages
 	wxDEFINE_EVENT(EVT_N2K, ObservedEvt);
-	wxLogMessage(_T("Initializing Listeners: %d"), parameterGroupNumbers.size());
-	for (auto it : parameterGroupNumbers) {
-		wxLogMessage(_T("Added Listener: %d"), it);
-		NMEA2000Id dummy = NMEA2000Id(it);
-		listeners.push_back(std::move(GetListener(dummy, EVT_N2K, this)));
+	for (auto& it : parameterGroupNumbers) {
+		wxLogMessage(_T("Added Listener: %d, %s"), it.first, it.second);
+		listeners.push_back(std::move(GetListener(NMEA2000Id(it.first), EVT_N2K, this)));
 	}
 
 	Bind(EVT_N2K, [&](ObservedEvt ev) {
@@ -558,8 +556,7 @@ wxString NetworkPlugin::GetNetworkInterface(void) {
 
 void NetworkPlugin::HandleN2K(ObservedEvt ev) {
 	std::vector<uint8_t>payload = GetN2000Payload(NMEA2000Id(123456), ev);
-	unsigned int pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
-	wxLogMessage(_T("Event ID: %d, String: %s, PGN: %d"), ev.GetId(), ev.GetString(), pgn);
+	ParseMessage(payload);
 }	
 
 // PGN 60928 ISO Address Claim
@@ -629,6 +626,13 @@ void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 	}
 	// BUG BUG What to do with these ??
 
+}
+
+wxString NetworkPlugin::ParseMessage(std::vector<uint8_t> data) {
+	unsigned int pgn = data[3] | (data[4] << 8) | (data[5] << 16);
+	wxString result = wxString::Format("PGN: %d (%s), Source: %d, Destination: %d, Priority: %d", pgn, parameterGroupNumbers[pgn], data[2], data[6], data[7]);
+	wxLogMessage(result);
+	return result;
 }
 
 // PGN 126993 NMEA Heartbeat
