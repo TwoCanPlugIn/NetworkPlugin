@@ -476,6 +476,7 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 	if (id == networkToolbar) {
 		isNetworkDialogVisible = !isNetworkDialogVisible;
 		auiManager->GetPane(_T("Network Plugin")).Show(isNetworkDialogVisible);
+		auiManager->GetPane(_T("Network Plugin")).Centre();
 		auiManager->Update();
 		SetToolbarItemState(id, isNetworkDialogVisible);
 	}
@@ -507,6 +508,7 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 			SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 			break;
 		case NETWORKDIALOG_PING_EVENT:
+			// Intent is to "Ping" the NMEA 2000 device
 			break;
 		default:
 			event.Skip();
@@ -628,6 +630,7 @@ void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 
 }
 
+// We should dislay this to a debug/diagnostics window
 wxString NetworkPlugin::ParseMessage(std::vector<uint8_t> data) {
 	unsigned int pgn = data[3] | (data[4] << 8) | (data[5] << 16);
 	wxString result = wxString::Format("PGN: %d (%s), Source: %d, Destination: %d, Priority: %d", pgn, parameterGroupNumbers[pgn], data[2], data[6], data[7]);

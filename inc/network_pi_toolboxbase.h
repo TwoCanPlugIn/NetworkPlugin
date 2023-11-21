@@ -42,7 +42,7 @@ class NetworkToolboxBase : public wxPanel
 		// Virtual event handlers, override them in your derived class
 		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void OnInterfaceChanged( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnIntervaChanged( wxSpinEvent& event ) { event.Skip(); }
+		virtual void OnIntervalChanged( wxSpinEvent& event ) { event.Skip(); }
 		virtual void OnHeartbeatChanged( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnNetworkChanged( wxCommandEvent& event ) { event.Skip(); }
 

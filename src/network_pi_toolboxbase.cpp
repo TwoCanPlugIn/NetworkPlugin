@@ -43,7 +43,7 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	// Connect Events
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkToolboxBase::OnInit ) );
 	cmbInterface->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceChanged ), NULL, this );
-	spinInterval->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
+	spinInterval->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervalChanged ), NULL, this );
 	chkHeartbeat->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
 	chkNetwork->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
 }
@@ -53,7 +53,7 @@ NetworkToolboxBase::~NetworkToolboxBase()
 	// Disconnect Events
 	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkToolboxBase::OnInit ) );
 	cmbInterface->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceChanged ), NULL, this );
-	spinInterval->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervaChanged ), NULL, this );
+	spinInterval->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervalChanged ), NULL, this );
 	chkHeartbeat->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
 	chkNetwork->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
 
