@@ -285,6 +285,25 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 	wxLogMessage(_T("Network Plugin, Write ISO Request for 126998: %d"), result);
 
+	payload.clear();
+
+	int latitude = 38.0f * 1e7;
+	int longitude = 145.0f * 1e7;
+	
+	payload.push_back(latitude & 0xFF);
+	payload.push_back((latitude >> 8) & 0xFF);
+	payload.push_back((latitude >> 16) & 0xFF);
+	payload.push_back((latitude >> 24) & 0xFF);
+
+	payload.push_back(longitude & 0xFF);
+	payload.push_back((longitude >> 8) & 0xFF);
+	payload.push_back((longitude >> 16) & 0xFF);
+	payload.push_back((longitude >> 24) & 0xFF);
+
+	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
+
+	result = WriteCommDriverN2K(driverHandle, 129025, 255, 5, sharedPointer);
+	wxLogMessage(_T("Network Plugin, Write PGN 129025: %d"), result);
 
 	payload.clear();
 
@@ -432,8 +451,9 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 				configSettings->Write(_T("Interface"), tmpString);
 				configSettings->Write(_T("Heartbeat"), sendHeartbeat);
 				configSettings->Write(_T("Request"), sendNetwork);
-
-				heartbeatTimer->Start(heartbeatInterval * 60000);
+				if (heartbeatTimer != nullptr) {
+					heartbeatTimer->Start(heartbeatInterval * 60000);
+				}
 			}
 		}
 	}
