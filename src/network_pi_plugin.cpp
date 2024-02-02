@@ -69,7 +69,8 @@ int NetworkPlugin::Init(void) {
 		//wxString tempString;
 		//configSettings->Read(_T("Interface"), &tempString, wxEmptyString);
 		//driverHandle = std::string(tempString.mb_str());
-		driverHandle = GetNetworkInterface();
+		driverN2K = GetNetworkInterface();
+		driverSignalK = GetSignalKInterface();
 		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, FALSE);
 		configSettings->Read(_T("Request"), &sendNetwork, FALSE);
 	}
@@ -89,7 +90,7 @@ int NetworkPlugin::Init(void) {
 	// Guessing that YachtDevices & socketCan ignore this (or at least NOP)
 	std::vector<int> pgnList{ 59904 };
 	CommDriverResult result;
-	result = RegisterTXPGNs(driverHandle, pgnList);
+	result = RegisterTXPGNs(driverN2K, pgnList);
 
 	// Initialize NMEA 2000 Listeners
 
@@ -190,7 +191,7 @@ int NetworkPlugin::Init(void) {
 	// It won't use the Plugin Common Name "Network Plugin", which is what I would have expected 
 
 	// Start a timer to transmit NMEA 2000 network queries
-	if ((sendHeartbeat) && (!driverHandle.empty())) {
+	if ((sendHeartbeat) && (!driverN2K.empty())) {
 		heartbeatTimer = new wxTimer();
 		heartbeatTimer->Connect(heartbeatTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
 		heartbeatTimer->Start(heartbeatInterval * 60000);
@@ -224,7 +225,7 @@ bool NetworkPlugin::DeInit(void) {
 		configSettings->SetPath(_T("/PlugIns/Network"));
 		configSettings->Write(_T("Visible"), isNetworkDialogVisible);
 		configSettings->Write(_T("Interval"), heartbeatInterval);
-		wxString tmpString(driverHandle.c_str(), wxConvUTF8);
+		wxString tmpString(driverN2K.c_str(), wxConvUTF8);
 		configSettings->Write(_T("Interface"), tmpString);
 		configSettings->Write(_T("Heartbeat"), sendHeartbeat);
 		configSettings->Write(_T("Request"), sendNetwork);
@@ -247,11 +248,21 @@ bool NetworkPlugin::DeInit(void) {
 	return TRUE;
 }
 
-// Timer sends heartbeat and network request PGN's
-void NetworkPlugin::OnTimer(wxTimerEvent &event) {
+// Send a SignalK update
+void NetworkPlugin::SendSignalkUpdate(void) {
+	CommDriverResult result;
+	wxString message = "{\"updates\":[{\"source\":{\"sentence\":\"HDM\",\"talker\":\"II\",\"type\":\"NMEA0183\"},\"values\":[{\"path\":\"navigation.test\",\"value\":5.13}]}],\"context\":\"vessels.self\",\"name\":\"Titanic\"}";
+	std::vector<unsigned char>SignalK;
+	for (auto it : message) {
+		SignalK.push_back(it);
+	}
+	auto signalkPointer = std::make_shared<std::vector<uint8_t> >(std::move(SignalK));
+	result = WriteCommDriver(driverSignalK, signalkPointer);
 
-	wxLogMessage(_T("Network Plugin - On Timer"));
-	
+	wxLogMessage(_T("### Send SignalK: %d"), result);
+}
+
+void NetworkPlugin::SendNMEA2000(void) {
 	CommDriverResult result;
 
 	std::vector<uint8_t> payload;
@@ -274,7 +285,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
 	//wxLogMessage(_T("Network Plugin, Write ISO Request for 126996: %d"), result);
-	
+
 	payload.clear();
 	payload.push_back(126998 & 0xFF);
 	payload.push_back((126998 >> 8) & 0xFF);
@@ -289,7 +300,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	int latitude = 38.0f * 1e7;
 	int longitude = 145.0f * 1e7;
-	
+
 	payload.push_back(latitude & 0xFF);
 	payload.push_back((latitude >> 8) & 0xFF);
 	payload.push_back((latitude >> 16) & 0xFF);
@@ -302,8 +313,8 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	result = WriteCommDriverN2K(driverHandle, 129025, 255, 5, sharedPointer);
-	wxLogMessage(_T("Network Plugin, Write PGN 129025: %d"), result);
+	//result = WriteCommDriverN2K(driverN2K, 129025, 255, 5, sharedPointer);
+	//wxLogMessage(_T("Network Plugin, Write PGN 129025: %d"), result);
 
 	payload.clear();
 
@@ -324,7 +335,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	for (size_t i = 0; i < 28; i++) {
 		payload.push_back(0x20);
 	}
-	
+
 	// Software Version Bytes [36] - [67]
 	payload.push_back(0x42);
 	payload.push_back(0x42);
@@ -340,7 +351,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	payload.push_back(0x43);
 	payload.push_back(0x43);
 	payload.push_back(0x43);
-	
+
 	for (size_t i = 0; i < 28; i++) {
 		payload.push_back(0x20);
 	}
@@ -362,6 +373,25 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
 	//result = WriteCommDriverN2K(driverHandle, 126996, 255, 5, sharedPointer);
 	//wxLogMessage(_T("Network Plugin, Transmit PGN 126996: %d"), result);
+}
+
+
+
+// Timer sends heartbeat and network request PGN's
+void NetworkPlugin::OnTimer(wxTimerEvent &event) {
+
+	wxLogMessage(_T("Network Plugin - On Timer"));
+	wxLog::FlushActive();
+	
+	SendSignalkUpdate();
+
+	wxLogMessage(_T("Network Plugin, After SignalK"));
+	wxLog::FlushActive();
+
+	SendNMEA2000();
+	
+	wxLogMessage(_T("Network Plugin, After NMEA2000"));
+	wxLog::FlushActive();
 }
 
 // Called when OpenCPN is loading saved AUI pages
@@ -423,7 +453,7 @@ void NetworkPlugin::OnSetupOptions(void) {
 	toolboxPanel->SetInterval(heartbeatInterval);
 	toolboxPanel->SetHeartbeat(sendHeartbeat);
 	toolboxPanel->SetNetwork(sendNetwork);
-	toolboxPanel->SetInterface(driverHandle);
+	toolboxPanel->SetInterface(driverN2K);
 }
 
 // I have no idea when this is called
@@ -444,10 +474,10 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 				heartbeatInterval = toolboxPanel->GetInterval();
 				sendHeartbeat = toolboxPanel->GetHeartbeat();
 				sendNetwork = toolboxPanel->GetNetwork();
-				driverHandle = toolboxPanel->GetInterface();
+				driverN2K = toolboxPanel->GetInterface();
 
 				configSettings->Write(_T("Interval"), heartbeatInterval);
-				wxString tmpString(driverHandle.c_str(), wxConvUTF8);
+				wxString tmpString(driverN2K.c_str(), wxConvUTF8);
 				configSettings->Write(_T("Interface"), tmpString);
 				configSettings->Write(_T("Heartbeat"), sendHeartbeat);
 				configSettings->Write(_T("Request"), sendNetwork);
@@ -549,6 +579,22 @@ wxString NetworkPlugin::GetNetworkInterface(void) {
 	}
 	return wxEmptyString;
 }
+
+wxString NetworkPlugin::GetSignalKInterface(void) {
+	// retrieves the first SignalK Network Interface
+	std::vector<DriverHandle> activeDrivers;
+	activeDrivers = GetActiveDrivers();
+	// Enumerate the drivers and select the first NMEA 2000 network connection
+	for (auto const& activeDriver : activeDrivers) {
+		for (auto const& driver : GetAttributes(activeDriver)) {
+			if (driver.second == "SignalK") {
+				return activeDriver;
+			}
+		}
+	}
+	return wxEmptyString;
+}
+
 
 // Raw NMEA 2000 generated by OpenCPN v5.8
 // Parsing routines cut and pasted from TwoCan Plugin

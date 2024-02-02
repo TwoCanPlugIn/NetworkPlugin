@@ -79,7 +79,9 @@ bool sendHeartbeat;
 bool sendNetwork;
 
 // The NMEA 2000 interface
-DriverHandle driverHandle;
+//DriverHandle driverHandle;
+DriverHandle driverN2K;
+DriverHandle driverSignalK;
 
 // The Network plugin
 class NetworkPlugin : public opencpn_plugin_118, public wxEvtHandler {
@@ -150,6 +152,11 @@ private:
 
 	// Get's the first available NMEA 2000 network interface
 	wxString GetNetworkInterface(void);
+	void SendNMEA2000(void);
+
+	// Get the first available SignalK Interface
+	wxString GetSignalKInterface(void);
+	void SendSignalkUpdate(void);
 
 	// index into the payload.
 	// The payload is in Actisense format, ""}, {so as I've just pasted code from twocan, ""}, {
