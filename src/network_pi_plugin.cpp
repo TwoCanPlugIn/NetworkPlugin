@@ -191,7 +191,7 @@ int NetworkPlugin::Init(void) {
 	// It won't use the Plugin Common Name "Network Plugin", which is what I would have expected 
 
 	// Start a timer to transmit NMEA 2000 network queries
-	if ((sendHeartbeat) && (!driverN2K.empty())) {
+	if ((sendHeartbeat) && ((!driverN2K.empty()) || (!driverSignalK.empty()) ) ){
 		heartbeatTimer = new wxTimer();
 		heartbeatTimer->Connect(heartbeatTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
 		heartbeatTimer->Start(heartbeatInterval * 60000);
@@ -251,7 +251,10 @@ bool NetworkPlugin::DeInit(void) {
 // Send a SignalK update
 void NetworkPlugin::SendSignalkUpdate(void) {
 	CommDriverResult result;
-	wxString message = "{\"updates\":[{\"source\":{\"sentence\":\"HDM\",\"talker\":\"II\",\"type\":\"NMEA0183\"},\"values\":[{\"path\":\"navigation.test\",\"value\":5.13}]}],\"context\":\"vessels.self\",\"name\":\"Titanic\"}";
+	wxString message = "{\"updates\":[{\"source\":{\"sentence\":\"HDM\",\"talker\":\"II\",\"type\":\"NMEA0183\"},\"values\":[{\"path\":\"navigation.headingMagnetic\",\"value\":5.13}]}],\"context\":\"vessels.self\"}\r\n";
+	
+	wxLogMessage(_T("SignalK Update: %s"), message);
+	
 	std::vector<unsigned char>SignalK;
 	for (auto it : message) {
 		SignalK.push_back(it);
@@ -259,7 +262,7 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 	auto signalkPointer = std::make_shared<std::vector<uint8_t> >(std::move(SignalK));
 	result = WriteCommDriver(driverSignalK, signalkPointer);
 
-	wxLogMessage(_T("### Send SignalK: %d"), result);
+	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
 }
 
 void NetworkPlugin::SendNMEA2000(void) {
@@ -586,8 +589,10 @@ wxString NetworkPlugin::GetSignalKInterface(void) {
 	activeDrivers = GetActiveDrivers();
 	// Enumerate the drivers and select the first NMEA 2000 network connection
 	for (auto const& activeDriver : activeDrivers) {
+		wxLogMessage(_T("Enumerating %s"), activeDriver.c_str());
 		for (auto const& driver : GetAttributes(activeDriver)) {
 			if (driver.second == "SignalK") {
+				wxLogMessage(_T("Found and Using %s"), activeDriver);
 				return activeDriver;
 			}
 		}
