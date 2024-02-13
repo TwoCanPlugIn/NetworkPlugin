@@ -252,7 +252,7 @@ bool NetworkPlugin::DeInit(void) {
 void NetworkPlugin::SendSignalkLogon(void) {
 	
 	std::string data = "{\"requestId\":\"FA1CA3B7-F121-4E5C-99FA-A498BD5CAFEB\",\"login\":{\"username\":\"pi\",\"password\":\"raspberry\"}}";
-	auto payload = make_shared<std::vector<uint8_t>>();
+	std::shared_ptr payload = std::make_shared<std::vector<uint8_t>>();
 	for (const auto& ch : data) {
 		payload->push_back(ch);
 	}
@@ -272,7 +272,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	
 	wxLogMessage(_T("SignalK Logon: %s"), message);
 	
-	std::vector<unsigned char>SignalK;
+	std::vector<uint8_t>SignalK;
 	for (auto it : message) {
 		SignalK.push_back(it);
 	}
