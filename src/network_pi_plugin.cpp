@@ -248,7 +248,23 @@ bool NetworkPlugin::DeInit(void) {
 	return TRUE;
 }
 
+// Alternative
+void NetworkPlugin::SendSignalkLogon(void) {
+	
+	std::string data = "{\"requestId\":\"FA1CA3B7-F121-4E5C-99FA-A498BD5CAFEB\",\"login\":{\"username\":\"pi\",\"password\":\"raspberry\"}}";
+	auto payload = make_shared<std::vector<uint8_t>>();
+	for (const auto& ch : data) {
+		payload->push_back(ch);
+	}
+	CommDriverResult outcome = WriteCommDriver(driverSignalK, payload);
+
+	wxLogMessage(_T("Send Signalk Logon: %d"), outcome);
+
+
+}
+
 // Send a SignalK Logon
+/*
 void NetworkPlugin::SendSignalkLogon(void) {
 	CommDriverResult result;
 	
@@ -266,6 +282,8 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
 
 }
+
+*/
 
 // Send a SignalK Update
 void NetworkPlugin::SendSignalkUpdate(void) {
