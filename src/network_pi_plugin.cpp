@@ -407,9 +407,15 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	wxLogMessage(_T("Network Plugin - On Timer"));
 	wxLog::FlushActive();
 	
+	SendSignalkLogon();
+
+	wxLogMessage(_T("Network Plugin, After SignalK Logon"));
+	wxLog::FlushActive();
+
+
 	SendSignalkUpdate();
 
-	wxLogMessage(_T("Network Plugin, After SignalK"));
+	wxLogMessage(_T("Network Plugin, After SignalK Update"));
 	wxLog::FlushActive();
 
 	SendNMEA2000();
