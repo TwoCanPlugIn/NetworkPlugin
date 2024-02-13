@@ -156,6 +156,8 @@ private:
 
 	// Get the first available SignalK Interface
 	wxString GetSignalKInterface(void);
+	// Send SignalK Logon and Update Messages
+	void SendSignalkLogon(void);
 	void SendSignalkUpdate(void);
 
 	// index into the payload.

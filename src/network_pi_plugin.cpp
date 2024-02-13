@@ -248,12 +248,13 @@ bool NetworkPlugin::DeInit(void) {
 	return TRUE;
 }
 
-// Send a SignalK update
-void NetworkPlugin::SendSignalkUpdate(void) {
+// Send a SignalK Logon
+void NetworkPlugin::SendSignalkLogon(void) {
 	CommDriverResult result;
-	wxString message = "{\"updates\":[{\"source\":{\"sentence\":\"HDM\",\"talker\":\"II\",\"type\":\"NMEA0183\"},\"values\":[{\"path\":\"navigation.headingMagnetic\",\"value\":5.13}]}],\"context\":\"vessels.self\"}\r\n";
 	
-	wxLogMessage(_T("SignalK Update: %s"), message);
+	wxString message = "{\"requestId\":\"FA1CA3B7-F121-4E5C-99FA-A498BD5CAFEB\",\"login\":{\"username\":\"pi\",\"password\":\"raspberry\"}}";
+	
+	wxLogMessage(_T("SignalK Logon: %s"), message);
 	
 	std::vector<unsigned char>SignalK;
 	for (auto it : message) {
@@ -263,6 +264,26 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 	result = WriteCommDriver(driverSignalK, signalkPointer);
 
 	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
+
+}
+
+// Send a SignalK Update
+void NetworkPlugin::SendSignalkUpdate(void) {
+	CommDriverResult result;
+
+	wxString message = "{\"updates\":[{\"source\":{\"label\":\"CAN-BUS\",\"type\":\"NMEA2000\",\"pgn\":127250,\"src\":\"2\",\"deviceInstance\":0},\"values\":[{\"path\":\"navigation.headingTrue\",\"value\":2.0}]}],\"context\":\"vessels.self\"}";
+
+	wxLogMessage(_T("SignalK Update: %s"), message);
+
+	std::vector<unsigned char>SignalK;
+	for (auto it : message) {
+		SignalK.push_back(it);
+	}
+	auto signalkPointer = std::make_shared<std::vector<uint8_t> >(std::move(SignalK));
+	result = WriteCommDriver(driverSignalK, signalkPointer);
+
+	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
+
 }
 
 void NetworkPlugin::SendNMEA2000(void) {
