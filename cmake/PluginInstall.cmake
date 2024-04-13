@@ -17,9 +17,9 @@ if(WIN32)
     if(MSVC)
         # TARGET_LINK_LIBRARIES(${PACKAGE_NAME} gdiplus.lib glu32.lib)
         target_link_libraries(${PACKAGE_NAME} ${OPENGL_LIBRARIES})
-        add_subdirectory(libs/ocpn-api)
-        target_link_libraries(${PACKAGE_NAME} ocpn::api)
-        message(STATUS "${CMLOC}Added ocpn-api for MSVC")
+#        add_subdirectory(libs/ocpn-api)
+#        target_link_libraries(${PACKAGE_NAME} ocpn::api)
+#        message(STATUS "${CMLOC}Added ocpn-api for MSVC")
     endif(MSVC)
 
     if(MINGW)
@@ -27,9 +27,9 @@ if(WIN32)
         add_definitions(" -DUNICODE")
         target_link_libraries(${PACKAGE_NAME} ${OPENGL_LIBRARIES})
         set(CMAKE_SHARED_LINKER_FLAGS "-L../buildwin")
-        add_subdirectory(libs/ocpn-api)
-        target_link_libraries(${PACKAGE_NAME} ocpn::api)
-        message(STATUS "${CMLOC}Added ocpn-api for MINGW")
+#        add_subdirectory(libs/ocpn-api)
+#        target_link_libraries(${PACKAGE_NAME} ocpn::api)
+#        message(STATUS "${CMLOC}Added ocpn-api for MINGW")
     endif(MINGW)
 endif(WIN32)
 
@@ -44,25 +44,6 @@ if(UNIX)
     endif(PROFILING)
 endif(UNIX)
 
-if(APPLE)
-    install(
-        TARGETS ${PACKAGE_NAME}
-        RUNTIME
-        LIBRARY DESTINATION OpenCPN.app/Contents/PlugIns)
-    if(EXISTS ${PROJECT_SOURCE_DIR}/data)
-        install(DIRECTORY data DESTINATION OpenCPN.app/Contents/SharedSupport/plugins/${PACKAGE_NAME}
-		PATTERN "*.dll" EXCLUDE)
-    endif()
-
-	if(EXISTS ${PROJECT_SOURCE_DIR}/UserIcons)
-        install(DIRECTORY UserIcons DESTINATION OpenCPN.app/Contents/SharedSupport/plugins/${PACKAGE_NAME})
-    endif()
-
-    find_package(ZLIB REQUIRED)
-    target_link_libraries(${PACKAGE_NAME} ${ZLIB_LIBRARIES})
-
-endif(APPLE)
-
 if(UNIX AND NOT APPLE AND NOT QT_ANDROID)
     find_package(BZip2 REQUIRED)
     include_directories(${BZIP2_INCLUDE_DIR})
@@ -72,6 +53,24 @@ if(UNIX AND NOT APPLE AND NOT QT_ANDROID)
 endif(UNIX AND NOT APPLE AND NOT QT_ANDROID)
 
 set(PARENT opencpn)
+
+if(APPLE)
+    install(
+        TARGETS ${PACKAGE_NAME}
+        RUNTIME
+        LIBRARY DESTINATION OpenCPN.app/Contents/PlugIns)
+    if(EXISTS ${PROJECT_SOURCE_DIR}/data)
+        install(DIRECTORY data DESTINATION OpenCPN.app/Contents/SharedSupport/plugins/${PACKAGE_NAME})
+    endif()
+
+    if(EXISTS ${PROJECT_SOURCE_DIR}/UserIcons)
+        install(DIRECTORY UserIcons DESTINATION OpenCPN.app/Contents/SharedSupport/plugins/${PACKAGE_NAME})
+    endif()
+
+    find_package(ZLIB REQUIRED)
+    target_link_libraries(${PACKAGE_NAME} ${ZLIB_LIBRARIES})
+
+endif(APPLE)
 
 # Based on code from nohal
 if(NOT CMAKE_INSTALL_PREFIX)
@@ -105,12 +104,6 @@ if(WIN32)
         message(STATUS "${CMLOC}Install Data: ${INSTALL_DIRECTORY}")
     endif(EXISTS ${PROJECT_SOURCE_DIR}/data)
 
-	if(EXISTS ${PROJECT_SOURCE_DIR}/data)
-        install(DIRECTORY data DESTINATION "${INSTALL_DIRECTORY}"
-		PATTERN "*.dylib" EXCLUDE)
-        message(STATUS "${CMLOC}Install Data: ${INSTALL_DIRECTORY}")
-    endif(EXISTS ${PROJECT_SOURCE_DIR}/data)
-
     # fix for missing dll's FILE(GLOB gtkdll_files "${CMAKE_CURRENT_SOURCE_DIR}/buildwin/gtk/*.dll") INSTALL(FILES ${gtkdll_files} DESTINATION ".") FILE(GLOB expatdll_files
     # "${CMAKE_CURRENT_SOURCE_DIR}/buildwin/expat-2.1.0/*.dll") INSTALL(FILES ${expatdll_files} DESTINATION ".")
 
@@ -124,23 +117,20 @@ if(UNIX AND NOT APPLE)
     install(TARGETS ${PACKAGE_NAME} LIBRARY DESTINATION ${PREFIX_PARENTLIB})
 
     if(EXISTS ${PROJECT_SOURCE_DIR}/data)
-        install(DIRECTORY data DESTINATION ${PREFIX_PARENTDATA}/plugins/${PACKAGE_NAME}
-		PATTERN "drivers" EXCLUDE
-		PATTERN "*.dll" EXCLUDE
-		PATTERN "*.dylib" EXCLUDE)
+        install(DIRECTORY data DESTINATION ${PREFIX_PARENTDATA}/plugins/${PACKAGE_NAME})
         message(STATUS "${CMLOC}Install data: ${PREFIX_PARENTDATA}/plugins/${PACKAGE_NAME}")
     endif()
-
     if(EXISTS ${PROJECT_SOURCE_DIR}/UserIcons)
         install(DIRECTORY UserIcons DESTINATION ${PREFIX_PARENTDATA}/plugins/${PACKAGE_NAME})
         set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/script/postinst")
         set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${PROJECT_SOURCE_DIR}/script/postinst")
         message(STATUS "${CMLOC}Install UserIcons: ${PREFIX_PARENTDATA}/plugins/${PACKAGE_NAME}")
     endif()
-
 endif(UNIX AND NOT APPLE)
 
 if(APPLE)
+    message(STATUS "${CMLOC}Install Prefix: ${CMAKE_INSTALL_PREFIX}")
+
     # For Apple build, we need to copy the "data" directory contents to the build directory, so that the packager can pick them up.
     if(NOT EXISTS "${PROJECT_BINARY_DIR}/data/")
         file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/data/")
@@ -168,6 +158,13 @@ if(APPLE)
             file(COPY ${_currentDataFile} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/UserIcons)
         endforeach(_currentDataFile)
     endif()
+
+    # On macos, fix paths which points to the build environment, make sure they
+    # refers to runtime locations
+    message(STATUS "Adjusting MacOS library paths")
+    install(CODE "execute_process(
+      COMMAND bash -c ${PROJECT_SOURCE_DIR}/cmake/fix-macos-libs.sh
+    )")
 
     install(
         TARGETS ${PACKAGE_NAME}
