@@ -271,7 +271,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 void NetworkPlugin::SendSignalkUnsubscribe(void) {
 	CommDriverResult result;
 
-	wxString message = "{\"context\":\"*\",\"unsubscribe\":[{\"path":\"*\"}]}";
+	wxString message = "{\"context\":\"*\",\"unsubscribe\":[{\"path\":\"*\"}]}";
 
 	wxLogMessage(_T("SignalK Unsubscribe %s"), message);
 
@@ -431,7 +431,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	wxLogMessage(_T("Network Plugin, After SignalK Logon"));
 	wxLog::FlushActive();
 
-	SendSignalKUnsubscribe();
+	SendSignalkUnsubscribe();
 
 	wxLogMessage(_T("Network Plugin, After SignalK Unsubscribe"));
 	wxLog::FlushActive();
