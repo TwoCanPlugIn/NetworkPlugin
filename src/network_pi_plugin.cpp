@@ -248,23 +248,7 @@ bool NetworkPlugin::DeInit(void) {
 	return TRUE;
 }
 
-// Alternative
-void NetworkPlugin::SendSignalkLogon(void) {
-	
-	std::string data = "{\"requestId\":\"FA1CA3B7-F121-4E5C-99FA-A498BD5CAFEB\",\"login\":{\"username\":\"pi\",\"password\":\"raspberry\"}}";
-	std::shared_ptr payload = std::make_shared<std::vector<uint8_t>>();
-	for (const auto& ch : data) {
-		payload->push_back(ch);
-	}
-	CommDriverResult outcome = WriteCommDriver(driverSignalK, payload);
-
-	wxLogMessage(_T("Send Signalk Logon: %d"), outcome);
-
-
-}
-
 // Send a SignalK Logon
-/*
 void NetworkPlugin::SendSignalkLogon(void) {
 	CommDriverResult result;
 	
@@ -283,7 +267,24 @@ void NetworkPlugin::SendSignalkLogon(void) {
 
 }
 
-*/
+// Send a SignalK Unsubscribe
+void NetworkPlugin::SendSignalkUnsubscribe(void) {
+	CommDriverResult result;
+
+	wxString message = "{\"context\":\"*\",\"unsubscribe\":[{\"path":\"*\"}]}";
+
+	wxLogMessage(_T("SignalK Unsubscribe %s"), message);
+
+	std::vector<unsigned char>SignalK;
+	for (auto it : message) {
+		SignalK.push_back(it);
+	}
+	auto signalkPointer = std::make_shared<std::vector<uint8_t> >(std::move(SignalK));
+	result = WriteCommDriver(driverSignalK, signalkPointer);
+
+	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
+
+}
 
 // Send a SignalK Update
 void NetworkPlugin::SendSignalkUpdate(void) {
@@ -430,6 +431,10 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	wxLogMessage(_T("Network Plugin, After SignalK Logon"));
 	wxLog::FlushActive();
 
+	SendSignalKUnsubscribe();
+
+	wxLogMessage(_T("Network Plugin, After SignalK Unsubscribe"));
+	wxLog::FlushActive();
 
 	SendSignalkUpdate();
 

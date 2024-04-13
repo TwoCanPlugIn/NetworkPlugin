@@ -547,6 +547,12 @@ if(NOT QT_ANDROID)
         set(wxWidgets_CONFIG_OPTIONS --version=${WXWIDGETS_FORCE_VERSION})
     endif()
 
+    # BUG BUG
+    #set(wxWidgets_LIBRARIES "D:\\Code\\wxWidgets\\lib\\vc_dll")
+#set(wxWidgets_INCLUDE_DIRS "D:\\Code\\wxWidgets\\include")
+#set(wxWidgets_LIB_DIR "D:\\Code\\wxWidgets\\lib\\vc_dll")
+#set(wxWidgets_ROOT_DIR "D:\\Code\\wxWidgets")
+
     message(STATUS "${CMLOC}wxWidgets components: ${wxWidgets_USE_LIBS}")
     find_package(wxWidgets REQUIRED COMPONENTS ${wxWidgets_USE_LIBS})
 
