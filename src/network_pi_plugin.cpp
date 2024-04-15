@@ -255,13 +255,23 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	wxString message = "{\"requestId\":\"FA1CA3B7-F121-4E5C-99FA-A498BD5CAFEB\",\"login\":{\"username\":\"pi\",\"password\":\"raspberry\"}}";
 	
 	wxLogMessage(_T("SignalK Logon: %s"), message);
-	
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	for (const auto& ch : message) {
+		payload->push_back(ch);
+	}
+
+	result = WriteCommDriver(driverSignalK, payload);
+
+	/*
 	std::vector<uint8_t>SignalK;
 	for (auto it : message) {
 		SignalK.push_back(it);
 	}
 	auto signalkPointer = std::make_shared<std::vector<uint8_t> >(std::move(SignalK));
 	result = WriteCommDriver(driverSignalK, signalkPointer);
+	*/
 
 	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
 
@@ -275,12 +285,13 @@ void NetworkPlugin::SendSignalkUnsubscribe(void) {
 
 	wxLogMessage(_T("SignalK Unsubscribe %s"), message);
 
-	std::vector<unsigned char>SignalK;
-	for (auto it : message) {
-		SignalK.push_back(it);
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	for (const auto& ch : message) {
+		payload->push_back(ch);
 	}
-	auto signalkPointer = std::make_shared<std::vector<uint8_t> >(std::move(SignalK));
-	result = WriteCommDriver(driverSignalK, signalkPointer);
+
+	result = WriteCommDriver(driverSignalK, payload);
 
 	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
 
@@ -294,12 +305,13 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 
 	wxLogMessage(_T("SignalK Update: %s"), message);
 
-	std::vector<unsigned char>SignalK;
-	for (auto it : message) {
-		SignalK.push_back(it);
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	for (const auto& ch : message) {
+		payload->push_back(ch);
 	}
-	auto signalkPointer = std::make_shared<std::vector<uint8_t> >(std::move(SignalK));
-	result = WriteCommDriver(driverSignalK, signalkPointer);
+
+	result = WriteCommDriver(driverSignalK, payload);
 
 	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
 
