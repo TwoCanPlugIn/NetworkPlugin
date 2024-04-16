@@ -92,6 +92,9 @@ int NetworkPlugin::Init(void) {
 	CommDriverResult result;
 	result = RegisterTXPGNs(driverN2K, pgnList);
 
+	// The map of network devices
+	networkDevices.reserve(253);
+
 	// Initialize NMEA 2000 Listeners
 
 	// Experimental, listen for all NMEA 2000 Messages
@@ -699,40 +702,40 @@ void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {
 	NMEA2000Id id_60928(60928);
 	std::vector<uint8_t>payload = GetN2000Payload(id_60928, ev);
 
-	unsigned char source = payload[7];
+	unsigned char source = payload.at(7);
 
 	// Unique Identity Number 21 bits
-	networkInformation[source].deviceInformation.uniqueId = (payload[index + 0] | (payload[index + 1] << 8) | (payload[index + 2] << 16) | (payload[3] << 24)) & 0x1FFFFF;
+	networkDevices.at(source).deviceInformation.uniqueId = (payload.at(index + 0) | (payload.at(index + 1) << 8) | (payload.at(index + 2) << 16) | (payload.at(index + 3) << 24)) & 0x1FFFFF;
 
 	// Manufacturer Code 11 bits
-	networkInformation[source].deviceInformation.manufacturerId = ((payload[index + 0] | (payload[index + 1] << 8) | (payload[index + 2] << 16) | (payload[index + 3] << 24)) & 0xFFE00000) >> 21;
+	networkDevices.at(source).deviceInformation.manufacturerId = ((payload.at(index + 0) | (payload.at(index + 1) << 8) | (payload.at(index + 2) << 16) | (payload.at(index + 3) << 24)) & 0xFFE00000) >> 21;
 
 	// Not really fussed about these
 	// ISO ECU Instance 3 bits()
-	//networkInformation[source].deviceInformation.ecuInstance = (payload[index + 4] & 0xE0) >> 5;
+	//networkDevices.at(source).deviceInformation.ecuInstance = (payload.at(index + 4] & 0xE0) >> 5;
 	// ISO Function Instance 5 bits
-	//networkInformation[source].deviceInformation.ecuFunction = payload[index + 4] & 0x1F;
+	//networkDevices.at(source).deviceInformation.ecuFunction = payload.at(index + 4] & 0x1F;
 
 	// ISO Function Class 8 bits
-	networkInformation[source].deviceInformation.deviceFunction = payload[index + 5];
+	networkDevices.at(source).deviceInformation.deviceFunction = payload.at(index + 5);
 
 	// Reserved 1 bit
 	//(payload[6] & 0x80) >> 7
 
 	// Device Class 7 bits
-	networkInformation[source].deviceInformation.deviceClass = payload[index + 6] & 0x7F;
+	networkDevices.at(source).deviceInformation.deviceClass = payload.at(index + 6) & 0x7F;
 
 	// System Instance 4 bits
-	networkInformation[source].deviceInformation.deviceInstance = payload[index + 7] & 0x0F;
+	networkDevices.at(source).deviceInformation.deviceInstance = payload.at(index + 7) & 0x0F;
 
 	// Industry Group 3 bits - Marine == 4
-	networkInformation[source].deviceInformation.industryGroup = (payload[index + 7] & 0x70) >> 4;
+	networkDevices.at(source).deviceInformation.industryGroup = (payload.at(index + 7) & 0x70) >> 4;
 
 	// ISO Self Configurable 1 bit
-	networkInformation[source].deviceInformation.selfConfigure = (payload[index + 7] & 0x80) >> 7;
+	networkDevices.at(source).deviceInformation.selfConfigure = (payload.at(index + 7) & 0x80) >> 7;
 
 	// BUG BUG Debugging
-	wxLogMessage(_T("Network Plugin, Address Claim: Source: %d, Id: %d, Manufacturer: %d"), source, networkInformation[source].deviceInformation.uniqueId, networkInformation[source].deviceInformation.manufacturerId);
+	wxLogMessage(_T("Network Plugin, Address Claim: Source: %d, Id: %d, Manufacturer: %d"), source, networkDevices.at(source).deviceInformation.uniqueId, networkDevices.at(source).deviceInformation.manufacturerId);
 
 }
 
@@ -744,12 +747,12 @@ void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 	std::vector<unsigned int> receivedPGN;
 
 	unsigned char source = payload[7];
-	unsigned char flagRxTx = payload[index + 0];
+	unsigned char flagRxTx = payload.at(index + 0);
 	// 0 = Transmitted, 1 = Received
 	unsigned int pgn;
 	// first byte of PGN126464 indicates whether Tx or Rx, then each PGN encoded over three bytes
 	for (int i = 0; i < (((payload.size() - index - 1)) / 3); i++) {
-		pgn = payload[index + 1 + (i * 3)] | (payload[index + 2 + (i * 3)] << 8) | (payload[index + 3 + (i * 3)] << 16);
+		pgn = payload.at(index + 1 + (i * 3)) | (payload.at(index + 2 + (i * 3)) << 8) | (payload.at(index + 3 + (i * 3)) << 16);
 		if (pgn != 0xFFFFFF) {
 			if (flagRxTx == 0) {
 				transmittedPGN.push_back(pgn);
@@ -764,9 +767,9 @@ void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 }
 
 // We should dislay this to a debug/diagnostics window
-wxString NetworkPlugin::ParseMessage(std::vector<uint8_t> data) {
-	unsigned int pgn = data[3] | (data[4] << 8) | (data[5] << 16);
-	wxString result = wxString::Format("PGN: %d (%s), Source: %d, Destination: %d, Priority: %d", pgn, parameterGroupNumbers[pgn], data[2], data[6], data[7]);
+wxString NetworkPlugin::ParseMessage(std::vector<uint8_t> payload) {
+	unsigned int pgn = payload.at(3) | (payload.at(4) << 8) | (payload.at(5) << 16);
+	wxString result = wxString::Format("PGN: %d (%s), Source: %d, Destination: %d, Priority: %d", pgn, parameterGroupNumbers.at(pgn), payload.at(2), payload.at(6), payload.at(7));
 	wxLogMessage(result);
 	return result;
 }
@@ -776,22 +779,22 @@ void NetworkPlugin::HandleN2K_126993(ObservedEvt ev) {
 	NMEA2000Id id_126993(126993);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126993, ev);
 
-	unsigned char source = payload[7];
+	unsigned char source = payload.at(index + 7);
 
 	unsigned short timeOffset;
-	timeOffset = payload[index + 0] | (payload[index + 1] << 8);
+	timeOffset = payload.at(index + 0) | (payload.at(index + 1) << 8);
 
 	unsigned char counter;
-	counter = payload[index + 2];
+	counter = payload.at(index + 2);
 
 	unsigned char class1CanState;
-	class1CanState = payload[index + 3] & 0x07;
+	class1CanState = payload.at(index + 3) & 0x07;
 
 	unsigned char class2CanState;
-	class2CanState = (payload[index + 3] & 0x38) >> 3;
+	class2CanState = (payload.at(index + 3) & 0x38) >> 3;
 
 	unsigned char equipmentState;
-	equipmentState = (payload[index + 3] & 0x40) >> 6;
+	equipmentState = (payload.at(index + 3) & 0x40) >> 6;
 
 	// BUG BUG Debug
 	wxLogMessage(wxString::Format("Network Plugin, Heartbeat: Source: %d, Time: %d, Count: %d, CAN 1: %d, CAN 2: %d", source, timeOffset, counter, class1CanState, class2CanState));
@@ -803,70 +806,71 @@ void NetworkPlugin::HandleN2K_126996(ObservedEvt ev) {
 	NMEA2000Id id_126996(126996);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126996, ev);
 
-	unsigned char source = payload[7];
+	unsigned char source = payload.at(7);
 
 	// Should divide by 100 to get the correct displayable version
-	networkInformation[source].productInformation.dataBaseVersion = payload[index + 0] | (payload[index + 1] << 8);
+	networkDevices.at(source).productInformation.dataBaseVersion = payload.at(index + 0) | (payload.at(index + 1) << 8);
 
-	networkInformation[source].productInformation.productCode = payload[index + 2] | (payload[index + 3] << 8);
+	networkDevices.at(source).productInformation.productCode = payload.at(index + 2) | (payload.at(index + 3) << 8);
 
 	// Each of the following strings are up to 32 bytes long, and NOT NULL terminated.
 
 	// Model ID Bytes [4] - [35]
 	//memset(&productInformation->modelId[0], '\0', 32);
-	networkInformation[source].productInformation.modelId.Clear();
+	networkDevices.at(source).productInformation.modelId.Clear();
 	for (int j = 0; j < 31; j++) {
-		if (isprint(payload[index + 4 + j])) {
-			networkInformation[source].productInformation.modelId.append(1, payload[index + 4 + j]);
+		if (isprint(payload.at(index + 4 + j))) {
+			networkDevices.at(source).productInformation.modelId.append(1, payload.at(index + 4 + j));
 		}
 	}
 
 	// Software Version Bytes [36] - [67]
 	//memset(&productInformation->softwareVersion[0], '\0', 32);
-	networkInformation[source].productInformation.softwareVersion.Clear();
+	networkDevices.at(source).productInformation.softwareVersion.Clear();
 	for (int j = 0; j < 31; j++) {
-		if (isprint(payload[index + 36 + j])) {
-			networkInformation[source].productInformation.softwareVersion.append(1, payload[index + 36 + j]);
+		if (isprint(payload.at(index + 36 + j))) {
+			networkDevices.at(source).productInformation.softwareVersion.append(1, payload.at(index + 36 + j));
 		}
 	}
 
 	// Model Version Bytes [68] - [99]
 	//memset(&productInformation->modelVersion[0], '\0', 32);
-	networkInformation[source].productInformation.modelVersion.Clear();
+	networkDevices.at(source).productInformation.modelVersion.Clear();
 	for (int j = 0; j < 31; j++) {
-		if (isprint(payload[index + 68 + j])) {
-			networkInformation[source].productInformation.modelVersion.append(1, payload[index+ 68 + j]);
+		if (isprint(payload.at(index + 68 + j))) {
+			networkDevices.at(source).productInformation.modelVersion.append(1, payload.at(index+ 68 + j));
 		}
 	}
 
 	// Serial Number Bytes [100] - [131]
 	//memset(&productInformation->serialNumber[0], '\0', 32);
-	networkInformation[source].productInformation.serialNumber.Clear();
+	networkDevices.at(source).productInformation.serialNumber.Clear();
 	for (int j = 0; j < 31; j++) {
-		if (isprint(payload[index + 100 + j])) {
-			networkInformation[source].productInformation.serialNumber.append(1, payload[index + 100 + j]);
+		if (isprint(payload.at(index + 100 + j))) {
+			networkDevices.at(source).productInformation.serialNumber.append(1, payload.at(index + 100 + j));
 		}
 	}
 
-	networkInformation[source].productInformation.certificationLevel = payload[index + 132];
-	networkInformation[source].productInformation.loadEquivalency = payload[133];
+	networkDevices.at(source).productInformation.certificationLevel = payload.at(index + 132);
+	networkDevices.at(source).productInformation.loadEquivalency = payload[133];
 
 	// BUG BUG Debugging
 	wxLogMessage(_T("Network Plugin, Product Information: Source: %d, Product Code: %d, Model Id: %s"), 
-		source, networkInformation[source].productInformation.productCode, 
-		networkInformation[source].productInformation.modelId);
+		source, networkDevices.at(source).productInformation.productCode, 
+		networkDevices.at(source).productInformation.modelId);
 }
 
 // PGN 126998 Configuration Information
 void NetworkPlugin::HandleN2K_126998(ObservedEvt ev) {
 	NMEA2000Id id_126998(126998);
 	std::vector<uint8_t>payload = GetN2000Payload(id_126998, ev);
+	int index = 13;
 
-	unsigned char source = payload[7];
+	unsigned char source = payload.at(index + 7);
 	size_t variableIndex = index;
 
 	// Use an index as each string is variable length
-	unsigned int length = payload[variableIndex + 0];
+	unsigned int length = payload.at(variableIndex + 0);
 	
 	// BUG BUG What about Unicode strings. I have seen these once !!!
 
@@ -874,32 +878,32 @@ void NetworkPlugin::HandleN2K_126998(ObservedEvt ev) {
 	if (payload[variableIndex] == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
 		variableIndex++;
 		for (size_t i = 0; i < length - 2; i++) {
-			networkInformation[source].configurationInformation.information1.append(1, payload[variableIndex]);
+			networkDevices.at(source).configurationInformation.information1.append(1, payload.at(variableIndex));
 			variableIndex++;
 		}
 	}
 
-	length = payload[variableIndex];
+	length = payload.at(variableIndex);
 	variableIndex++;
-	if (payload[variableIndex] == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
+	if (payload.at(variableIndex) == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
 		variableIndex++;
 		for (size_t i = 0; i < length - 2; i++) {
-			networkInformation[source].configurationInformation.information2.append(1, payload[variableIndex]);
+			networkDevices.at(source).configurationInformation.information2.append(1, payload.at(variableIndex));
 			variableIndex++;
 		}
 	}
 
-	length = payload[variableIndex];
+	length = payload.at(variableIndex);
 	variableIndex++;
-	if (payload[index] == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
+	if (payload.at(variableIndex) == 1) { // First byte indicates encoding, 0 for Unicode, 1 for ASCII
 		variableIndex++;
 		for (size_t i = 0; i < length - 2; i++) {
-			networkInformation[source].configurationInformation.information3.append(1, payload[variableIndex++]);
+			networkDevices.at(source).configurationInformation.information3.append(1, payload.at(variableIndex));
 			variableIndex++;
 		}
 	}
 	// BUG BUG Debugging
 	wxLogMessage(_T("Network Plugin, Configuration Information: Source: %d, Info 1: %s, Info 2: %s"), source, 
-		networkInformation[source].configurationInformation.information1, 
-		networkInformation[source].configurationInformation.information2);
+		networkDevices.at(source).configurationInformation.information1, 
+		networkDevices.at(source).configurationInformation.information2);
 }

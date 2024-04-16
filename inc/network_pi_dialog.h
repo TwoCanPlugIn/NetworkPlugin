@@ -63,12 +63,12 @@ typedef struct ConfigurationInformation {
 } ConfigurationInformation;
 
 // Used  to store the data for the Network Map, combines elements from address claim & product information
-typedef struct NetworkInformation {
+typedef struct NetworkDevice {
 	DeviceInformation deviceInformation;
 	ProductInformation productInformation;
 	ConfigurationInformation configurationInformation;
 	wxDateTime timestamp; // Updated upon reception of heartbeat or address claim. Used to determine stale entries
-} NetworkInformation;
+} NetworkDevice;
 
 
 // image for dialog icon
@@ -81,7 +81,7 @@ extern const int NETWORKDIALOG_CLOSE_EVENT;
 extern const int NETWORKDIALOG_PING_EVENT;
 
 // Array of network devices & their product and device information
-extern NetworkInformation networkInformation[253];
+extern std::vector<NetworkDevice> networkDevices;
 
 class NetworkDialog : public NetworkDialogBase {
 	

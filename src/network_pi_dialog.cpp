@@ -63,23 +63,23 @@ void NetworkDialog::OnInit(wxInitDialogEvent& event) {
 
 	for (int i = 0; i < 254; i++) {
 		// No need to iterate over non-existent entries
-		if ((networkInformation[i].deviceInformation.uniqueId > 0) || (strlen(networkInformation[i].productInformation.modelId) > 0)) {
-			gridNetwork->SetCellValue(i, 0, wxString::Format("%lu", networkInformation[i].deviceInformation.uniqueId));
+		if ((networkDevices.at(i).deviceInformation.uniqueId > 0) || (strlen(networkDevices.at(i).productInformation.modelId) > 0)) {
+			gridNetwork->SetCellValue(i, 0, wxString::Format("%lu", networkDevices.at(i).deviceInformation.uniqueId));
 			// Look up the manufacturer name
 			//std::unordered_map<int, std::string>::iterator it = deviceManufacturers.find(networkInfoirmation[i].manufacturerId);
 			//if (it != deviceManufacturers.end()) {
 			//	gridNetwork->SetCellValue(i, 1, it->second);
 			//}
 			//else {
-			gridNetwork->SetCellValue(i, 1, wxString::Format("%d", networkInformation[i].deviceInformation.manufacturerId));
+			gridNetwork->SetCellValue(i, 1, wxString::Format("%d", networkDevices.at(i).deviceInformation.manufacturerId));
 			//}
-			gridNetwork->SetCellValue(i, 2, wxString::Format("%s", networkInformation[i].productInformation.modelId));
+			gridNetwork->SetCellValue(i, 2, wxString::Format("%s", networkDevices.at(i).productInformation.modelId));
 			// We don't receive our own heartbeats so ignore our time stamp value
 			//if (networkInformation[i].uniqueId != uniqueId) {
 			wxGridCellAttr *attr;
 			attr = new wxGridCellAttr;
 			// Differentiate dead/alive devices
-			attr->SetTextColour((wxDateTime::Now() > (networkInformation[i].timestamp + wxTimeSpan::Seconds(60))) ? *wxRED : *wxGREEN);
+			attr->SetTextColour((wxDateTime::Now() > (networkDevices.at(i).timestamp + wxTimeSpan::Seconds(60))) ? *wxRED : *wxGREEN);
 			gridNetwork->SetAttr(i, 0, attr);
 			//}
 		}
