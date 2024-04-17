@@ -49,8 +49,8 @@ void NetworkToolbox::ListInterfaces(void) {
 	activeDrivers = GetActiveDrivers();
 	int i = 0;
 	// Enumerate the drivers and select a NMEA 2000 network connection
-	for (auto const& activeDriver : activeDrivers) {
-		for (auto const& driver : GetAttributes(activeDriver)) {
+	for (auto const &activeDriver : activeDrivers) {
+		for (auto const &driver : GetAttributes(activeDriver)) {
 			wxLogMessage(_T("Network Plugin, Interface: %s, Handle: %s, Protocol: %s"),
 				activeDriver, driver.first, driver.second);
 			if (driver.second == "nmea2000") {
@@ -83,8 +83,12 @@ void NetworkToolbox::OnNetworkChanged(wxCommandEvent& event) {
 	settingsDirty = TRUE;
 }
 
-wxString NetworkToolbox::GetInterface(void) {
-	return cmbInterface->GetString(cmbInterface->GetSelection());
+void NetworkToolbox::OnGarminChanged(wxCommandEvent& event) {
+	settingsDirty = TRUE;
+}
+
+void NetworkToolbox::OnNavicoChanged(wxCommandEvent& event) { 
+	settingsDirty = TRUE;
 }
 
 
@@ -105,6 +109,18 @@ void NetworkToolbox::SetInterval(int intervalValue) {
 	spinInterval->SetValue(intervalValue);
 }
 
+void NetworkToolbox::SetGarmin(bool displayValue) {
+	chkGarmin->SetValue(displayValue);
+}
+
+void NetworkToolbox::SetNavico(bool displayValue) {
+	chkNavico->SetValue(displayValue);
+}
+
+wxString NetworkToolbox::GetInterface(void) {
+	return cmbInterface->GetString(cmbInterface->GetSelection());
+}
+
 bool NetworkToolbox::GetHeartbeat(void) {
 	return chkHeartbeat->IsChecked();
 }
@@ -115,4 +131,12 @@ bool NetworkToolbox::GetNetwork(void) {
 
 int NetworkToolbox::GetInterval(void) {
 	return spinInterval->GetValue();
+}
+
+bool NetworkToolbox::GetGarmin(void) {
+	return chkGarmin->IsChecked();
+}
+
+bool NetworkToolbox::GetNavico(void) {
+	return chkNavico->IsChecked();
 }

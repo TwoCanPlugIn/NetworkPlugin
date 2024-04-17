@@ -23,18 +23,30 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	cmbInterface->SetSelection( 0 );
 	sizerPanel->Add( cmbInterface, 0, wxALL, 5 );
 
-	labelHeartbeat = new wxStaticText( this, wxID_ANY, wxT("Heartbeat Interval"), wxDefaultPosition, wxDefaultSize, 0 );
-	labelHeartbeat->Wrap( -1 );
-	sizerPanel->Add( labelHeartbeat, 0, wxALL, 5 );
-
-	spinInterval = new wxSpinCtrl( this, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 5, 1 );
-	sizerPanel->Add( spinInterval, 0, wxALL, 5 );
-
 	chkHeartbeat = new wxCheckBox( this, wxID_ANY, wxT("Send Heartbeats"), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerPanel->Add( chkHeartbeat, 0, wxALL, 5 );
 
+	wxBoxSizer* bSizer2;
+	bSizer2 = new wxBoxSizer( wxHORIZONTAL );
+
+	labelHeartbeat = new wxStaticText( this, wxID_ANY, wxT("Heartbeat Interval"), wxDefaultPosition, wxDefaultSize, 0 );
+	labelHeartbeat->Wrap( -1 );
+	bSizer2->Add( labelHeartbeat, 0, wxALL, 5 );
+
+	spinInterval = new wxSpinCtrl( this, wxID_ANY, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 5, 1 );
+	bSizer2->Add( spinInterval, 0, wxALL, 5 );
+
+
+	sizerPanel->Add( bSizer2, 0, wxEXPAND, 5 );
+
 	chkNetwork = new wxCheckBox( this, wxID_ANY, wxT("Request Network Information"), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerPanel->Add( chkNetwork, 0, wxALL, 5 );
+
+	chkGarmin = new wxCheckBox( this, wxID_ANY, wxT("Set Garmin Day/Night Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerPanel->Add( chkGarmin, 0, wxALL, 5 );
+
+	chkNavico = new wxCheckBox( this, wxID_ANY, wxT("Set Navico Day/Night Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerPanel->Add( chkNavico, 0, wxALL, 5 );
 
 
 	this->SetSizer( sizerPanel );
@@ -43,9 +55,11 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	// Connect Events
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkToolboxBase::OnInit ) );
 	cmbInterface->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceChanged ), NULL, this );
-	spinInterval->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervalChanged ), NULL, this );
 	chkHeartbeat->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
-	chkNetwork->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
+	spinInterval->Connect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervalChanged ), NULL, this );
+	chkNetwork->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnInfoChanged ), NULL, this );
+	chkGarmin->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnGarminChanged ), NULL, this );
+	chkNavico->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNavicoChanged ), NULL, this );
 }
 
 NetworkToolboxBase::~NetworkToolboxBase()
@@ -53,8 +67,10 @@ NetworkToolboxBase::~NetworkToolboxBase()
 	// Disconnect Events
 	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkToolboxBase::OnInit ) );
 	cmbInterface->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( NetworkToolboxBase::OnInterfaceChanged ), NULL, this );
-	spinInterval->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervalChanged ), NULL, this );
 	chkHeartbeat->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnHeartbeatChanged ), NULL, this );
-	chkNetwork->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNetworkChanged ), NULL, this );
+	spinInterval->Disconnect( wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler( NetworkToolboxBase::OnIntervalChanged ), NULL, this );
+	chkNetwork->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnInfoChanged ), NULL, this );
+	chkGarmin->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnGarminChanged ), NULL, this );
+	chkNavico->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNavicoChanged ), NULL, this );
 
 }

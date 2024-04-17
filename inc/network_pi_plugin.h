@@ -55,6 +55,15 @@ const int NETWORKDIALOG_OPEN_EVENT = wxID_HIGHEST + 1;
 const int NETWORKDIALOG_CLOSE_EVENT = wxID_HIGHEST + 2;
 const int NETWORKDIALOG_PING_EVENT = wxID_HIGHEST + 3;
 
+// Day, Dusk & Night mode constants
+const int NAVICO_DAY_MODE = 2;
+const int NAVICO_DUSK_MODE = 4;
+const int NAVICO_NIGHT_MODE = 4;
+
+const int GARMIN_DAY_MODE = 0;
+const int GARMIN_DUSK_MODE = 1;
+const int GARMIN_NIGHT_MODE = 1;
+
 // Globally accessible variables
 
 // Array of network devices & their product and device information
@@ -66,9 +75,6 @@ wxFileConfig *configSettings;
 // Dialog visibility status, ""}, {used to keep the toolbar icon state in synch
 bool isNetworkDialogVisible;
 
-// Flag used to indicate if any settings have been changed
-bool settingsDirty;
-
 // Frequency for sending heartbeat & network requests
 int heartbeatInterval;
 
@@ -77,6 +83,14 @@ bool sendHeartbeat;
 
 // Whether to request PGN 126996, 126998
 bool sendNetwork;
+
+// Set the day/night mode for external instruments
+bool displaySynch;
+
+// Flags for each of the different vendors
+bool displayNavico;
+bool displayRaymarine;
+bool displayGarmin;
 
 // The NMEA 2000 interface
 //DriverHandle driverHandle;
@@ -115,6 +129,7 @@ public:
 	void OnCloseToolboxPanel(int page_sel, int ok_apply_cancel);
 	void UpdateAuiStatus(void);
 	void LateInit(void);
+	void SetColorScheme(PI_ColorScheme cs);
 
 	void OnPaneClose(wxAuiManagerEvent& event);
 	void OnPaneActivate(wxAuiManagerEvent& event);
@@ -150,12 +165,13 @@ private:
 	wxTimer *heartbeatTimer;
 	void OnTimer(wxTimerEvent &event);
 
-	// Get's the first available NMEA 2000 network interface
+	// Get the first available NMEA 2000 network interface
 	wxString GetNetworkInterface(void);
 	void SendNMEA2000(void);
 
-	// Get the first available SignalK Interface
+	// Get's the first available SignalK Interface
 	wxString GetSignalKInterface(void);
+
 	// Send SignalK Logon and Update Messages
 	void SendSignalkLogon(void);
 	void SendSignalkUnsubscribe(void);

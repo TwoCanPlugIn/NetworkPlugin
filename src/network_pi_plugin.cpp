@@ -73,6 +73,8 @@ int NetworkPlugin::Init(void) {
 		driverSignalK = GetSignalKInterface();
 		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, FALSE);
 		configSettings->Read(_T("Request"), &sendNetwork, FALSE);
+		configSettings->Read(_T("Garmin"), &displayGarmin, FALSE);
+		configSettings->Read(_T("Navico"), &displayNavico, FALSE);
 	}
 
 	// Load toolbar icons
@@ -83,7 +85,7 @@ int NetworkPlugin::Init(void) {
 	wxString rolloverIcon = shareLocn + _T("network-rollover.svg");
 
 	// Initialize the toolbar
-	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_("NMEA 2000 Network"), _T("Display devices on NMEA 2000 Network"), NULL, -1, 0, this);
+	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_(PLUGIN_COMMON_NAME), _T("Display devices on NMEA 2000 Network"), NULL, -1, 0, this);
 
 	// Need to notify Actisense NGT-1 what PGN's we transmit
 	// We only transmit PGN 59904 ISO Request
@@ -92,14 +94,14 @@ int NetworkPlugin::Init(void) {
 	CommDriverResult result;
 	result = RegisterTXPGNs(driverN2K, pgnList);
 
-	// The map of network devices
-	networkDevices.reserve(253);
+	// The map of network devices (0-253)
+	networkDevices.reserve(254);
 
 	// Initialize NMEA 2000 Listeners
 
 	// Experimental, listen for all NMEA 2000 Messages
 	wxDEFINE_EVENT(EVT_N2K, ObservedEvt);
-	for (auto& it : parameterGroupNumbers) {
+	for (const auto &it : parameterGroupNumbers) {
 		wxLogMessage(_T("Added Listener: %d, %s"), it.first, it.second);
 		listeners.push_back(std::move(GetListener(NMEA2000Id(it.first), EVT_N2K, this)));
 	}
@@ -190,8 +192,8 @@ int NetworkPlugin::Init(void) {
 	wxLogMessage(_T("*** Toolbox: %d"), GetToolboxPanelCount());
 	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("network_pi")); 
 	
-	// BUG BUG GetPluginDataDir doesn't work the way I wold expect it to.
-	// It won't use the Plugin Common Name "Network Plugin", which is what I would have expected 
+	// BUG BUG GetPluginDataDir doesn't work the way I would expect it to.
+	// It won't use the Plugin Common Name PLUGIN_COMMON_NAME, which is what I would have expected 
 
 	// Start a timer to transmit NMEA 2000 network queries
 	if ((sendHeartbeat) && ((!driverN2K.empty()) || (!driverSignalK.empty()) ) ){
@@ -206,8 +208,8 @@ int NetworkPlugin::Init(void) {
 
 void NetworkPlugin::LateInit(void) {
 	// Load our dialog into the AUI Manager
-	paneInfo.Name(_T("Network Plugin"));
-	paneInfo.Caption("NMEA 2000 Network");
+	paneInfo.Name(_T(PLUGIN_COMMON_NAME));
+	paneInfo.Caption(PLUGIN_COMMON_NAME);
 	paneInfo.Float();
 	paneInfo.Hide();
 	paneInfo.Dockable(FALSE);
@@ -220,6 +222,7 @@ void NetworkPlugin::LateInit(void) {
 
 // OpenCPN is either closing down, or has been disabled from the Preferences Dialog
 bool NetworkPlugin::DeInit(void) {
+	
 	// Cleanup Dialog Event Handler
 	Disconnect(wxEVT_NETWORK_PLUGIN_EVENT, wxCommandEventHandler(NetworkPlugin::OnPluginEvent));
 	
@@ -246,6 +249,7 @@ bool NetworkPlugin::DeInit(void) {
 	auiManager->Disconnect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkPlugin::OnPaneActivate), NULL, this);
 	auiManager->UnInit();
 	auiManager->DetachPane(networkDialog);
+
 	delete networkDialog;
 
 	return TRUE;
@@ -261,7 +265,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 
 	auto payload = std::make_shared<std::vector<uint8_t>>();
 
-	for (const auto& ch : message) {
+	for (const auto &ch : message) {
 		payload->push_back(ch);
 	}
 
@@ -290,7 +294,7 @@ void NetworkPlugin::SendSignalkUnsubscribe(void) {
 
 	auto payload = std::make_shared<std::vector<uint8_t>>();
 
-	for (const auto& ch : message) {
+	for (const auto &ch : message) {
 		payload->push_back(ch);
 	}
 
@@ -310,7 +314,7 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 
 	auto payload = std::make_shared<std::vector<uint8_t>>();
 
-	for (const auto& ch : message) {
+	for (const auto &ch : message) {
 		payload->push_back(ch);
 	}
 
@@ -355,6 +359,8 @@ void NetworkPlugin::SendNMEA2000(void) {
 	//wxLogMessage(_T("Network Plugin, Write ISO Request for 126998: %d"), result);
 
 	payload.clear();
+
+	// BUG BUG Remove, just testing sendng PGN 129025 (Position - Rapid Update)
 
 	int latitude = 38.0f * 1e7;
 	int longitude = 145.0f * 1e7;
@@ -522,6 +528,9 @@ void NetworkPlugin::OnSetupOptions(void) {
 	toolboxPanel->SetHeartbeat(sendHeartbeat);
 	toolboxPanel->SetNetwork(sendNetwork);
 	toolboxPanel->SetInterface(driverN2K);
+	toolboxPanel->SetGarmin(displayGarmin);
+	toolboxPanel->SetNavico(displayNavico);
+
 }
 
 // I have no idea when this is called
@@ -532,34 +541,38 @@ void NetworkPlugin::SetupToolboxPanel(int page_sel, wxNotebook* pnotebook) {
 // Invoked when the OpenCPN Toolbox OK, Apply or Cancel buttons are pressed
 // Requires INSTALLS_TOOLBOX_PAGE
 void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
-	if (((ok_apply_cancel == 0) || (ok_apply_cancel == 4)) && (settingsDirty == TRUE)) {
+	if (((ok_apply_cancel == 0) || (ok_apply_cancel == 4)) && 
+		(toolboxPanel->settingsDirty == TRUE)) {
 		// Save the settings
 		if (configSettings) {
 			configSettings->SetPath(_T("/PlugIns/Network"));
 			
-			if (settingsDirty == TRUE) {
-
-				heartbeatInterval = toolboxPanel->GetInterval();
-				sendHeartbeat = toolboxPanel->GetHeartbeat();
-				sendNetwork = toolboxPanel->GetNetwork();
-				driverN2K = toolboxPanel->GetInterface();
-
-				configSettings->Write(_T("Interval"), heartbeatInterval);
-				wxString tmpString(driverN2K.c_str(), wxConvUTF8);
-				configSettings->Write(_T("Interface"), tmpString);
-				configSettings->Write(_T("Heartbeat"), sendHeartbeat);
-				configSettings->Write(_T("Request"), sendNetwork);
-				if (heartbeatTimer != nullptr) {
-					heartbeatTimer->Start(heartbeatInterval * 60000);
-				}
+			// Retrieve values from the toolbox
+			heartbeatInterval = toolboxPanel->GetInterval();
+			sendHeartbeat = toolboxPanel->GetHeartbeat();
+			sendNetwork = toolboxPanel->GetNetwork();
+			driverN2K = toolboxPanel->GetInterface();
+			displayGarmin = toolboxPanel->GetGarmin();
+			displayNavico = toolboxPanel->GetNavico();
+			// Write to the configuration settings
+			configSettings->Write(_T("Interval"), heartbeatInterval);
+			wxString tmpString(driverN2K.c_str(), wxConvUTF8);
+			configSettings->Write(_T("Interface"), tmpString);
+			configSettings->Write(_T("Heartbeat"), sendHeartbeat);
+			configSettings->Write(_T("Request"), sendNetwork);
+			configSettings->Write(_T("Garmin"), displayGarmin);
+			configSettings->Write(_T("Navico"), displayNavico);
+			// BUG BUG does the timer need to be restarted ?
+			if (heartbeatTimer != nullptr) {
+				heartbeatTimer->Start(heartbeatInterval * 60000);
 			}
 		}
 	}
 
 	// Cleanup the toolbox
-	delete toolboxPanel;
-	toolboxPanel = nullptr;
-	DeleteOptionsPage(optionsWindow);
+	//delete toolboxPanel;
+	//toolboxPanel = nullptr;
+	//DeleteOptionsPage(optionsWindow);
 }
 
 // Return the number of toolbar icons the plugin installs
@@ -567,10 +580,9 @@ int NetworkPlugin::GetToolbarToolCount(void) {
  return 1;
 }
 
-// Invoked whenever the plugin is enabled from the toolbox
+// Invoked whenever the plugin is enabled
 // Requires WANTS_CONFIG
 void NetworkPlugin::SetDefaults(void) {
-	// Is called when the plugin is enabled
 	wxMessageBox("Set Defaults called");
 }
 
@@ -580,7 +592,7 @@ void NetworkPlugin::SetDefaults(void) {
 void NetworkPlugin::OnContextMenuItemCallback(int id) {
 	if (id == networkContextMenu) {	
 		//isNetworkDialogVisible = !isNetworkDialogVisible;
-		//auiManager->GetPane(_T("Network Plugin")).Show(isNetworkDialogVisible);
+		//auiManager->GetPane(_T(PLUGIN_COMMON_NAME)).Show(isNetworkDialogVisible);
 		//auiManager->Update();
 		//SetToolbarItemState(id, isNetworkDialogVisible);
 		wxMessageBox(wxString::Format(_T("Chart Tilt: %f"), GetCanvasTilt()));
@@ -593,8 +605,8 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 	// Toggles the display of the network dialog
 	if (id == networkToolbar) {
 		isNetworkDialogVisible = !isNetworkDialogVisible;
-		auiManager->GetPane(_T("Network Plugin")).Show(isNetworkDialogVisible);
-		auiManager->GetPane(_T("Network Plugin")).Centre();
+		auiManager->GetPane(_T(PLUGIN_COMMON_NAME)).Show(isNetworkDialogVisible);
+		auiManager->GetPane(_T(PLUGIN_COMMON_NAME)).Centre();
 		auiManager->Update();
 		SetToolbarItemState(id, isNetworkDialogVisible);
 	}
@@ -610,6 +622,48 @@ void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
 void NetworkPlugin::OnPaneActivate(wxAuiManagerEvent& event) {
 	wxMessageBox("AUI Activate");
 }
+
+void NetworkPlugin::SetColorScheme(PI_ColorScheme cs) {
+	if (displaySynch == TRUE) {
+		if (cs == PI_ColorScheme::PI_GLOBAL_COLOR_SCHEME_DAY) {
+			if (displayNavico) {
+				// BUG BUG SetNavicoDisplayMode(2));
+			}
+			if (displayGarmin) {
+				// BUG BUG, SetGarminDisplayMode(0));
+			}
+			if (displayRaymarine) {
+				// BUG BUG, SetGarminDisplayMode(1));
+			}
+		}
+		else if (cs == PI_ColorScheme::PI_GLOBAL_COLOR_SCHEME_DUSK) {
+			if (displayNavico) {
+				// BUG BUG Forgot what the value is for dusk mode !!
+				// BUG BUG, SetNavicoDisplayMode(4));
+			}
+			if (displayGarmin) {
+				// BUG BUG SetGarminDisplayMode(1));
+			}
+			if (displayRaymarine) {
+				// BUG BUG, SetGarminDisplayMode(1));
+			}
+		}
+
+		else if (cs == PI_ColorScheme::PI_GLOBAL_COLOR_SCHEME_NIGHT) {
+			if (displayNavico) {
+				// BUG BUG, SetNavicoDisplayMode(4));
+			}
+			if (displayGarmin) {
+				// BUG BUG, SetGarminDisplayMode(1));
+			}
+			if (displayRaymarine) {
+				// BUG BUG, SetGarminDisplayMode(1));
+			}
+		}
+	}
+}
+
+
 
 // Handle events from the dialog
 // BUG BUG Any events to handle ??
@@ -638,8 +692,8 @@ wxString NetworkPlugin::GetNetworkInterface(void) {
 	std::vector<DriverHandle> activeDrivers;
 	activeDrivers = GetActiveDrivers();
 	// Enumerate the drivers and select the first NMEA 2000 network connection
-	for (auto const& activeDriver : activeDrivers) {
-		for (auto const& driver : GetAttributes(activeDriver)) {
+	for (auto const &activeDriver : activeDrivers) {
+		for (auto const &driver : GetAttributes(activeDriver)) {
 			if (driver.second == "nmea2000") {
 				return activeDriver;
 			}
@@ -653,9 +707,9 @@ wxString NetworkPlugin::GetSignalKInterface(void) {
 	std::vector<DriverHandle> activeDrivers;
 	activeDrivers = GetActiveDrivers();
 	// Enumerate the drivers and select the first NMEA 2000 network connection
-	for (auto const& activeDriver : activeDrivers) {
+	for (auto const &activeDriver : activeDrivers) {
 		wxLogMessage(_T("Enumerating %s"), activeDriver.c_str());
-		for (auto const& driver : GetAttributes(activeDriver)) {
+		for (auto const &driver : GetAttributes(activeDriver)) {
 			if (driver.second == "SignalK") {
 				wxLogMessage(_T("Found and Using %s"), activeDriver);
 				return activeDriver;
@@ -746,12 +800,12 @@ void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 	std::vector<unsigned int> transmittedPGN;
 	std::vector<unsigned int> receivedPGN;
 
-	unsigned char source = payload[7];
+	unsigned char source = payload.at(7);
 	unsigned char flagRxTx = payload.at(index + 0);
 	// 0 = Transmitted, 1 = Received
 	unsigned int pgn;
 	// first byte of PGN126464 indicates whether Tx or Rx, then each PGN encoded over three bytes
-	for (int i = 0; i < (((payload.size() - index - 1)) / 3); i++) {
+	for (size_t i = 0; i < (((payload.size() - index - 1)) / 3); i++) {
 		pgn = payload.at(index + 1 + (i * 3)) | (payload.at(index + 2 + (i * 3)) << 8) | (payload.at(index + 3 + (i * 3)) << 16);
 		if (pgn != 0xFFFFFF) {
 			if (flagRxTx == 0) {
@@ -770,7 +824,7 @@ void NetworkPlugin::HandleN2K_126464(ObservedEvt ev) {
 wxString NetworkPlugin::ParseMessage(std::vector<uint8_t> payload) {
 	unsigned int pgn = payload.at(3) | (payload.at(4) << 8) | (payload.at(5) << 16);
 	wxString result = wxString::Format("PGN: %d (%s), Source: %d, Destination: %d, Priority: %d", pgn, parameterGroupNumbers.at(pgn), payload.at(2), payload.at(6), payload.at(7));
-	wxLogMessage(result);
+	//wxLogMessage(result);
 	return result;
 }
 

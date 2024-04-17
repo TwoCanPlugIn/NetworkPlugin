@@ -34,26 +34,29 @@
 // OpenCPN include file
 #include "ocpn_plugin.h"
 
-// Flag used to indicate if any settings have been changed
-extern bool settingsDirty;
-
 class NetworkToolbox : public NetworkToolboxBase {
 	
 public:
 	NetworkToolbox(wxWindow* parent);
 	~NetworkToolbox();
 
+	bool settingsDirty;
+
 	// Getters
 	wxString GetInterface(void);
 	bool GetHeartbeat(void);
 	bool GetNetwork(void);
 	int GetInterval(void);
+	bool GetNavico(void);
+	bool GetGarmin(void);
 
 	// Setters
 	void SetInterface(wxString interfaceName);
 	void SetHeartbeat(bool heartbeatValue);
 	void SetNetwork(bool networkValue);
 	void SetInterval(int intervalValue);
+	void SetGarmin(bool displayValue);
+	void SetNavico(bool displayValue);
 
 protected:
 	// Overridden methods from the base class
@@ -62,6 +65,9 @@ protected:
 	void OnIntervaChanged(wxSpinEvent& event);
 	void OnHeartbeatChanged(wxCommandEvent& event);
 	void OnNetworkChanged(wxCommandEvent& event);
+	void OnGarminChanged(wxCommandEvent& event);
+	void OnNavicoChanged(wxCommandEvent& event);
+
 
 private:
 	void ListInterfaces(void);
