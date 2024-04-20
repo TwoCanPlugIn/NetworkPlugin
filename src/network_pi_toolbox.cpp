@@ -87,6 +87,9 @@ void NetworkToolbox::OnRaymarineChanged(wxCommandEvent& event) {
 	settingsDirty = TRUE;
 }
 
+void NetworkToolbox::OnGarminChanged(wxCommandEvent& event) {
+	settingsDirty = TRUE;
+}
 
 void NetworkToolbox::OnNavicoChanged(wxCommandEvent& event) { 
 	settingsDirty = TRUE;
