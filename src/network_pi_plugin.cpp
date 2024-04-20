@@ -69,8 +69,8 @@ int NetworkPlugin::Init(void) {
 		//wxString tempString;
 		//configSettings->Read(_T("Interface"), &tempString, wxEmptyString);
 		//driverHandle = std::string(tempString.mb_str());
-		driverN2K = GetNetworkInterface();
-		driverSignalK = GetSignalKInterface();
+		driverHandleN2K = GetNetworkInterface();
+		driverHandleSignalK = GetSignalKInterface();
 		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, FALSE);
 		configSettings->Read(_T("Request"), &sendNetwork, FALSE);
 		configSettings->Read(_T("Garmin"), &displayGarmin, FALSE);
@@ -92,7 +92,7 @@ int NetworkPlugin::Init(void) {
 	// Guessing that YachtDevices & socketCan ignore this (or at least NOP)
 	std::vector<int> pgnList{ 59904 };
 	CommDriverResult result;
-	result = RegisterTXPGNs(driverN2K, pgnList);
+	result = RegisterTXPGNs(driverHandleN2K, pgnList);
 
 	// The map of network devices (0-253)
 	networkDevices.reserve(254);
@@ -165,7 +165,6 @@ int NetworkPlugin::Init(void) {
 	// Instantiate the dialog
 	networkDialog = new  NetworkDialog(parentWindow, this);
 
-	
 	// BUG BUG Superfluous
 	if ((paneInfo.IsOk()) && (paneInfo.IsShown())) {
 		isNetworkDialogVisible = TRUE;
@@ -190,13 +189,13 @@ int NetworkPlugin::Init(void) {
 	wxLogMessage(_T("*** Private App: %s"), *GetpPrivateApplicationDataLocation());
 	wxLogMessage(_T("*** Doc Path: %s"), GetWritableDocumentsDir());
 	wxLogMessage(_T("*** Toolbox: %d"), GetToolboxPanelCount());
-	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir("network_pi")); 
+	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir(PLUGIN_PACKAGE_NAME)); 
 	
 	// BUG BUG GetPluginDataDir doesn't work the way I would expect it to.
 	// It won't use the Plugin Common Name PLUGIN_COMMON_NAME, which is what I would have expected 
 
 	// Start a timer to transmit NMEA 2000 network queries
-	if ((sendHeartbeat) && ((!driverN2K.empty()) || (!driverSignalK.empty()) ) ){
+	if ((sendHeartbeat) && ((!driverHandleN2K.empty()) || (!driverHandleSignalK.empty()) ) ){
 		heartbeatTimer = new wxTimer();
 		heartbeatTimer->Connect(heartbeatTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
 		heartbeatTimer->Start(heartbeatInterval * 60000);
@@ -231,7 +230,7 @@ bool NetworkPlugin::DeInit(void) {
 		configSettings->SetPath(_T("/PlugIns/Network"));
 		configSettings->Write(_T("Visible"), isNetworkDialogVisible);
 		configSettings->Write(_T("Interval"), heartbeatInterval);
-		wxString tmpString(driverN2K.c_str(), wxConvUTF8);
+		wxString tmpString(driverHandleN2K.c_str(), wxConvUTF8);
 		configSettings->Write(_T("Interface"), tmpString);
 		configSettings->Write(_T("Heartbeat"), sendHeartbeat);
 		configSettings->Write(_T("Request"), sendNetwork);
@@ -239,9 +238,11 @@ bool NetworkPlugin::DeInit(void) {
 
 	// Stop the timer
 	if (sendHeartbeat) {
-		heartbeatTimer->Stop();
-		heartbeatTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
-		delete heartbeatTimer;
+		if (heartbeatTimer != nullptr) {
+			heartbeatTimer->Stop();
+			heartbeatTimer->Disconnect(wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
+			delete heartbeatTimer;
+		}
 	}
 
 	// Cleanup AUI
@@ -269,7 +270,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 		payload->push_back(ch);
 	}
 
-	result = WriteCommDriver(driverSignalK, payload);
+	result = WriteCommDriver(driverHandleSignalK, payload);
 
 	/*
 	std::vector<uint8_t>SignalK;
@@ -280,7 +281,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	result = WriteCommDriver(driverSignalK, signalkPointer);
 	*/
 
-	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
+	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
@@ -298,9 +299,9 @@ void NetworkPlugin::SendSignalkUnsubscribe(void) {
 		payload->push_back(ch);
 	}
 
-	result = WriteCommDriver(driverSignalK, payload);
+	result = WriteCommDriver(driverHandleSignalK, payload);
 
-	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
+	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
@@ -318,12 +319,14 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 		payload->push_back(ch);
 	}
 
-	result = WriteCommDriver(driverSignalK, payload);
+	result = WriteCommDriver(driverHandleSignalK, payload);
 
-	wxLogMessage(_T("### Send SignalK: %s, %d"), driverSignalK.c_str(), result);
+	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
+// Periodically send ISO Request for PGN 60928 (Address Claim) & 126996 (product info)
+// to build the network map
 void NetworkPlugin::SendNMEA2000(void) {
 	CommDriverResult result;
 
@@ -527,7 +530,7 @@ void NetworkPlugin::OnSetupOptions(void) {
 	toolboxPanel->SetInterval(heartbeatInterval);
 	toolboxPanel->SetHeartbeat(sendHeartbeat);
 	toolboxPanel->SetNetwork(sendNetwork);
-	toolboxPanel->SetInterface(driverN2K);
+	toolboxPanel->SetInterface(driverHandleN2K);
 	toolboxPanel->SetGarmin(displayGarmin);
 	toolboxPanel->SetNavico(displayNavico);
 
@@ -551,12 +554,12 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 			heartbeatInterval = toolboxPanel->GetInterval();
 			sendHeartbeat = toolboxPanel->GetHeartbeat();
 			sendNetwork = toolboxPanel->GetNetwork();
-			driverN2K = toolboxPanel->GetInterface();
+			driverHandleN2K = toolboxPanel->GetInterface();
 			displayGarmin = toolboxPanel->GetGarmin();
 			displayNavico = toolboxPanel->GetNavico();
 			// Write to the configuration settings
 			configSettings->Write(_T("Interval"), heartbeatInterval);
-			wxString tmpString(driverN2K.c_str(), wxConvUTF8);
+			wxString tmpString(driverHandleN2K.c_str(), wxConvUTF8);
 			configSettings->Write(_T("Interface"), tmpString);
 			configSettings->Write(_T("Heartbeat"), sendHeartbeat);
 			configSettings->Write(_T("Request"), sendNetwork);
@@ -700,6 +703,230 @@ wxString NetworkPlugin::GetNetworkInterface(void) {
 		}
 	}
 	return wxEmptyString;
+}
+
+bool NetworkPlugin::SetNavicoDisplayMode(int mode, int group) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0x41);
+	payload->push_back(0x9F);
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+	payload->push_back(group);
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+	payload->push_back(0x26); // Command to change display mode
+	payload->push_back(0x00);
+	payload->push_back(0x01); // Not sure
+	payload->push_back(mode); //day 0x02, night 04
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 130845, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Navico Display Mode: %d"), result);
+		return false;
+	}
+}
+
+
+bool NetworkPlugin::SetNavicoDisplayColour(int colour, int group) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0x41);
+	payload->push_back(0x9F);
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+	payload->push_back(group);
+	payload->push_back(0xFF);
+	payload->push_back(0x2F); // Command to change colour
+	payload->push_back(0xAC); // Command to change colour
+	payload->push_back(0x00);
+	payload->push_back(0x01); // Not sure
+	payload->push_back(colour); // 0: Red, 1: Green, 2: Blue, 3: White, 4: Magenta,
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 130845, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Navico Display Mode: %d"), result);
+		return false;
+	}
+}
+
+bool NetworkPlugin::SetNavicoDisplayBrightness(int brightness, int group) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0x41);
+	payload->push_back(0x9F);
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+	payload->push_back(group);
+	payload->push_back(0xFF);
+	payload->push_back(0xFF);
+	payload->push_back(0x12); // Command to change backlight level
+	payload->push_back(0x00);
+	payload->push_back(0x01); // Not sure
+	payload->push_back(brightness * 11); // increments of 11!
+	payload->push_back(0x00);
+	payload->push_back(0x00);
+	payload->push_back(0x00);
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 130845, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Navico Display Brightness: %d"), result);
+		return false;
+	}
+}
+
+bool NetworkPlugin::SetGarminDisplayMode(int mode) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0xE5); //0xE5 0x98 encodes as manufacturer code Garmin, Industry Code 4 (marine)
+	payload->push_back(0x98);
+	payload->push_back(0xDE);
+	payload->push_back(0x05);
+	payload->push_back(0x05);
+	payload->push_back(0x05);
+	payload->push_back(0x00);
+	payload->push_back(0x00);
+	payload->push_back(0x02);
+	payload->push_back(0x00);
+	payload->push_back(mode); // 0 - Day, 1 - Night
+
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 126720, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Garmin Display Mode: %d"), result);
+		return false;
+	}
+}
+
+bool NetworkPlugin::SetGarminDisplayColour(int mode) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0xE5); //0xE5 0x98 encodes as manufacturer code Garmin, Industry Code 4 (marine)
+	payload->push_back(0x98);
+	payload->push_back(0xDE);
+	payload->push_back(0x05);
+	payload->push_back(0x05);
+	payload->push_back(0x05);
+	payload->push_back(0x00);
+	payload->push_back(0x00);
+	payload->push_back(0x0D); // Colour Mode command
+	payload->push_back(0x00);
+	payload->push_back(mode); // 0-Day Full Colour, 1, Day High Contrast, 2-Night Full Colour, 3- Night Red/Black, 4-Night Green/Black
+
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 126720, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Garmin Display Colour: %d"), result);
+		return false;
+	}
+}
+
+bool NetworkPlugin::SetGarminDisplayBrightness(int brightness, int mode) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0xE5); //0xE5 0x98 encodes as manufacturer code Garmin, Industry Code 4 (marine)
+	payload->push_back(0x98);
+	payload->push_back(0xDE);
+	payload->push_back(0x05);
+	payload->push_back(0x05);
+	payload->push_back(0x05);
+	payload->push_back(0x00);
+	payload->push_back(0x00);
+	payload->push_back(mode); // 0-Daylight Mode, 1-Night Mode
+	payload->push_back(0x00);
+	payload->push_back(brightness); // in 5% increments
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 126720, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Garmin Display Brightness: %d"), result);
+		return false;
+	}
+}
+
+bool NetworkPlugin::SetRaymarineDisplayBrightness(int brightness, int group) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0x3B); // Raymarine Manufacturer Code
+	payload->push_back(0x9F);
+	payload->push_back(0x0C); // Raymarine proprietary
+	payload->push_back(0x8C);
+	payload->push_back(group); // None: 0, Helm 1: 1, Helm 2: 2, Cockpit: 3, Flybridge: 4, Mast: 5,
+	// Group 1: 6, Group 2: 7, Group 3: 8, Group 4: 9, Group 5: 10 
+	payload->push_back(0xFF); // unknown
+	payload->push_back(0x00); // Brightness Command
+	payload->push_back(brightness); // Percentage
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 126720, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Raymarine Display Brightness: %d"), result);
+		return false;
+	}
+}
+
+bool NetworkPlugin::SetRaymarineDisplayMode(int mode, int group) {
+
+	auto payload = std::make_shared<std::vector<uint8_t>>();
+
+	payload->push_back(0x3B); // Raymarine Manufacturer Id
+	payload->push_back(0x9F);
+	payload->push_back(0x0C); // Raymarine Proprietary
+	payload->push_back(0x8C);
+	payload->push_back(group); // None: 0, Helm 1: 1, Helm 2: 2, Cockpit: 3, Flybridge: 4, Mast: 5,
+	// Group 1: 6, Group 2: 7, Group 3: 8, Group 4: 9, Group 5: 10 
+	payload->push_back(0xFF); // unknown
+	payload->push_back(0x01); // Colour Command
+	payload->push_back(mode); // Day 1: 0, Day 2: 2, Red/Black: 3, Inverse: 4
+
+	CommDriverResult result = WriteCommDriverN2K(driverHandleN2K, 126720, 255, 7, payload);
+
+	if (result == CommDriverResult::RESULT_COMM_NO_ERROR) {
+		return true;
+	}
+	else {
+		wxLogMessage(_T("Network Plugin, Error sending Raymarine Display Mode: %d"), result);
+		return false;
+	}
 }
 
 wxString NetworkPlugin::GetSignalKInterface(void) {

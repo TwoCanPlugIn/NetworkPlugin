@@ -17,7 +17,6 @@
 #include <wx/gdicmn.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
-#include <wx/aui/framemanager.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +34,7 @@ class NetworkDialogBase : public wxPanel
 		// Virtual event handlers, override them in your derived class
 		virtual void OnActivate( wxAuiManagerEvent& event ) { event.Skip(); }
 		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
+		virtual void OnRightClick( wxMouseEvent& event ) { event.Skip(); }
 		virtual void OnRightClick( wxGridEvent& event ) { event.Skip(); }
 
 

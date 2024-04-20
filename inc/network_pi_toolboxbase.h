@@ -40,6 +40,7 @@ class NetworkToolboxBase : public wxPanel
 		wxCheckBox* chkNetwork;
 		wxCheckBox* chkGarmin;
 		wxCheckBox* chkNavico;
+		wxCheckBox* checkRaymarine;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
@@ -49,6 +50,7 @@ class NetworkToolboxBase : public wxPanel
 		virtual void OnInfoChanged( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnGarminChanged( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnNavicoChanged( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnRaymarineChanged( wxCommandEvent& event ) { event.Skip(); }
 
 
 	public:

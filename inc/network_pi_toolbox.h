@@ -67,6 +67,7 @@ protected:
 	void OnNetworkChanged(wxCommandEvent& event);
 	void OnGarminChanged(wxCommandEvent& event);
 	void OnNavicoChanged(wxCommandEvent& event);
+	void OnRaymarineChanged(wxCommandEvent& event);
 
 
 private:

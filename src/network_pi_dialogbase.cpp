@@ -48,6 +48,7 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 	// Connect Events
 	this->Connect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
+	this->Connect( wxEVT_RIGHT_UP, wxMouseEventHandler( NetworkDialogBase::OnRightClick ) );
 	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
 }
 
@@ -56,6 +57,7 @@ NetworkDialogBase::~NetworkDialogBase()
 	// Disconnect Events
 	this->Disconnect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
 	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
+	this->Disconnect( wxEVT_RIGHT_UP, wxMouseEventHandler( NetworkDialogBase::OnRightClick ) );
 	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
 
 }

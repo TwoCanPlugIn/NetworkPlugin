@@ -94,8 +94,8 @@ bool displayGarmin;
 
 // The NMEA 2000 interface
 //DriverHandle driverHandle;
-DriverHandle driverN2K;
-DriverHandle driverSignalK;
+DriverHandle driverHandleN2K;
+DriverHandle driverHandleSignalK;
 
 // The Network plugin
 class NetworkPlugin : public opencpn_plugin_118, public wxEvtHandler {
@@ -176,6 +176,16 @@ private:
 	void SendSignalkLogon(void);
 	void SendSignalkUnsubscribe(void);
 	void SendSignalkUpdate(void);
+
+	// Change Brightness & Colour Mode for other instruments
+	bool SetNavicoDisplayBrightness(int brightness, int group);
+	bool SetNavicoDisplayMode(int mode, int group);
+	bool SetNavicoDisplayColour(int colour, int group);
+	bool SetGarminDisplayMode(int mode);
+	bool SetGarminDisplayColour(int colour);
+	bool SetGarminDisplayBrightness(int brightness, int mode);
+	bool SetRaymarineDisplayMode(int mode, int group);
+	bool SetRaymarineDisplayBrightness(int brightness, int group);
 
 	// index into the payload.
 	// The payload is in Actisense format, ""}, {so as I've just pasted code from twocan, ""}, {
