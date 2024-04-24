@@ -49,6 +49,7 @@ public:
 	int GetInterval(void);
 	bool GetNavico(void);
 	bool GetGarmin(void);
+	bool GetRaymarine(void);
 
 	// Setters
 	void SetInterface(wxString interfaceName);
@@ -57,6 +58,7 @@ public:
 	void SetInterval(int intervalValue);
 	void SetGarmin(bool displayValue);
 	void SetNavico(bool displayValue);
+	void SetRaymarine(bool displayValue);
 
 protected:
 	// Overridden methods from the base class

@@ -91,6 +91,7 @@ public:
 	
 protected:
 	//overridden methods from the base class
+	void OnActivate(wxAuiManagerEvent& event);
 	void OnInit(wxInitDialogEvent& event);
 	void OnRightClick(wxGridEvent& event);
 

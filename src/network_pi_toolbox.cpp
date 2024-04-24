@@ -95,7 +95,6 @@ void NetworkToolbox::OnNavicoChanged(wxCommandEvent& event) {
 	settingsDirty = TRUE;
 }
 
-
 void NetworkToolbox::SetInterface(wxString interfaceName) {
 	ListInterfaces();
 	cmbInterface->SetSelection(cmbInterface->FindString(interfaceName, FALSE));
@@ -121,6 +120,10 @@ void NetworkToolbox::SetNavico(bool displayValue) {
 	chkNavico->SetValue(displayValue);
 }
 
+void NetworkToolbox::SetRaymarine(bool displayValue) {
+	chkRaymarine->SetValue(displayValue);
+}
+
 wxString NetworkToolbox::GetInterface(void) {
 	return cmbInterface->GetString(cmbInterface->GetSelection());
 }
@@ -143,4 +146,8 @@ bool NetworkToolbox::GetGarmin(void) {
 
 bool NetworkToolbox::GetNavico(void) {
 	return chkNavico->IsChecked();
+}
+
+bool NetworkToolbox::GetRaymarine(void) {
+	return chkRaymarine->IsChecked();
 }

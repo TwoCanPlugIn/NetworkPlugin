@@ -75,6 +75,7 @@ int NetworkPlugin::Init(void) {
 		configSettings->Read(_T("Request"), &sendNetwork, FALSE);
 		configSettings->Read(_T("Garmin"), &displayGarmin, FALSE);
 		configSettings->Read(_T("Navico"), &displayNavico, FALSE);
+		configSettings->Read(_T("Raymarine"), &displayRaymarine, FALSE);
 	}
 
 	// Load toolbar icons
@@ -212,11 +213,21 @@ void NetworkPlugin::LateInit(void) {
 	paneInfo.Float();
 	paneInfo.Hide();
 	paneInfo.Dockable(FALSE);
+	auiManager->SetFlags(auiManager->GetFlags() | wxAUI_MGR_ALLOW_ACTIVE_PANE);
 	auiManager->AddPane(networkDialog, paneInfo);
 	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
 	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkPlugin::OnPaneActivate), NULL, this);
 	auiManager->Update();
 
+}
+
+bool NetworkPlugin::ShuttingDown(void) {
+	if (wxYES == wxMessageBox("OpenCPN Is Shutting Down", "Shutdown", wxYES_NO | wxICON_QUESTION)) {
+		return false;
+	}
+	else {
+		return true;
+	}
 }
 
 // OpenCPN is either closing down, or has been disabled from the Preferences Dialog
@@ -246,6 +257,7 @@ bool NetworkPlugin::DeInit(void) {
 	}
 
 	// Cleanup AUI
+	auiManager->SetFlags(auiManager->GetFlags() & ~(wxAUI_MGR_ALLOW_ACTIVE_PANE));
 	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
 	auiManager->Disconnect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkPlugin::OnPaneActivate), NULL, this);
 	auiManager->UnInit();
@@ -533,7 +545,7 @@ void NetworkPlugin::OnSetupOptions(void) {
 	toolboxPanel->SetInterface(driverHandleN2K);
 	toolboxPanel->SetGarmin(displayGarmin);
 	toolboxPanel->SetNavico(displayNavico);
-
+	toolboxPanel->SetRaymarine(displayRaymarine);
 }
 
 // I have no idea when this is called
@@ -557,6 +569,7 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 			driverHandleN2K = toolboxPanel->GetInterface();
 			displayGarmin = toolboxPanel->GetGarmin();
 			displayNavico = toolboxPanel->GetNavico();
+			displayRaymarine = toolboxPanel->GetRaymarine();
 			// Write to the configuration settings
 			configSettings->Write(_T("Interval"), heartbeatInterval);
 			wxString tmpString(driverHandleN2K.c_str(), wxConvUTF8);
@@ -565,6 +578,7 @@ void NetworkPlugin::OnCloseToolboxPanel(int page_sel, int ok_apply_cancel) {
 			configSettings->Write(_T("Request"), sendNetwork);
 			configSettings->Write(_T("Garmin"), displayGarmin);
 			configSettings->Write(_T("Navico"), displayNavico);
+			configSettings->Write(_T("Raymarine"), displayRaymarine);
 			// BUG BUG does the timer need to be restarted ?
 			if (heartbeatTimer != nullptr) {
 				heartbeatTimer->Start(heartbeatInterval * 60000);
@@ -613,6 +627,16 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 		auiManager->Update();
 		SetToolbarItemState(id, isNetworkDialogVisible);
 	}
+}
+
+
+// No idea what these twi do
+void NetworkPlugin::OnToolbarToolDownCallback(int id) {
+	wxMessageBox("On toolbar Down Callback");
+}
+
+void NetworkPlugin::OnToolbarToolUpCallback(int id) {
+	wxMessageBox("On toolbar Up Callback");
 }
 
 // Keep the toolbar in synch with the AUI Manager

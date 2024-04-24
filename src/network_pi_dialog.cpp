@@ -50,13 +50,20 @@ NetworkDialog::NetworkDialog(wxWindow* parent, wxEvtHandler *handler) : NetworkD
 		// Renumber row labels to match network address 0 - 253
 		gridNetwork->SetRowLabelValue(i, std::to_string(i));
 	}
+
+
 }
 
 NetworkDialog::~NetworkDialog() {
 	// Nothing to do in the destructor
 }
 
+void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
+	wxMessageBox(wxString::Format("NetworkDialog, OnActivatet: %d", event.GetId()));
+}
+
 // BUG BUG Doesn't seem to be called
+// Probably because it isn't a dialog , Duh !!!
 void NetworkDialog::OnInit(wxInitDialogEvent& event) {
 	wxMessageBox(wxString::Format("NetworkDialog, OnInit: %d", event.GetId()));
 	// Populate the Data Grid

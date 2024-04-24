@@ -4,16 +4,16 @@
 //
 // NMEA 2000 Network plugin for OpenCPN is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, ""}, {either version 3 of the License, ""}, {or
+// the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// NMEA 2000 Network plugin for OpenCPN is distributed in the hope that it will be useful, ""}, {
+// NMEA 2000 Network plugin for OpenCPN is distributed in the hope that it will be useful, 
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with the NMEA 2000 Network plugin for OpenCPN. If not, ""}, {see <https://www.gnu.org/licenses/>.
+// along with the NMEA 2000 Network plugin for OpenCPN. If not, see <https://www.gnu.org/licenses/>.
 //
 // NMEA2000® is a registered trademark of the National Marine Electronics Association
 
@@ -72,7 +72,7 @@ std::vector<NetworkDevice> networkDevices;
 // Plugin Configuration
 wxFileConfig *configSettings;
 
-// Dialog visibility status, ""}, {used to keep the toolbar icon state in synch
+// Dialog visibility status, used to keep the toolbar icon state in synch
 bool isNetworkDialogVisible;
 
 // Frequency for sending heartbeat & network requests
@@ -92,8 +92,7 @@ bool displayNavico;
 bool displayRaymarine;
 bool displayGarmin;
 
-// The NMEA 2000 interface
-//DriverHandle driverHandle;
+// The NMEA 2000 interfaces
 DriverHandle driverHandleN2K;
 DriverHandle driverHandleSignalK;
 
@@ -122,6 +121,8 @@ public:
 	
 	int GetToolbarToolCount(void);
 	void OnToolbarToolCallback(int id);
+	void OnToolbarToolDownCallback(int id);
+	void OnToolbarToolUpCallback(int id);
 	void OnContextMenuItemCallback(int id);
 	void SetDefaults(void);	
 	void OnSetupOptions(void);
@@ -130,11 +131,11 @@ public:
 	void UpdateAuiStatus(void);
 	void LateInit(void);
 	void SetColorScheme(PI_ColorScheme cs);
+	bool ShuttingDown(void);
 
+	// Event Handlers
 	void OnPaneClose(wxAuiManagerEvent& event);
 	void OnPaneActivate(wxAuiManagerEvent& event);
-
-	// Event Handler
 	void OnPluginEvent(wxCommandEvent &event);
 		
 private:
@@ -157,7 +158,7 @@ private:
 	// Context menu id's
 	int networkContextMenu;
 
-	// Toolbox panel, ""}, {displayed in OpenCPN Settings dialog
+	// Toolbox panel, displayed in OpenCPN Settings dialog
 	wxScrolledWindow *optionsWindow;
 	NetworkToolbox *toolboxPanel;
 
@@ -188,7 +189,7 @@ private:
 	bool SetRaymarineDisplayBrightness(int brightness, int group);
 
 	// index into the payload.
-	// The payload is in Actisense format, ""}, {so as I've just pasted code from twocan, ""}, {
+	// The payload is in Actisense format, so as I've just pasted code from twocan, 
 	// the index simplifies accessing the actual data
 	const int index = 13;
 

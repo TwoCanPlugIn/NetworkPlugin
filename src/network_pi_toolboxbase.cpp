@@ -48,8 +48,8 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	chkNavico = new wxCheckBox( this, wxID_ANY, wxT("Set Navico Day/Night Mode"), wxDefaultPosition, wxDefaultSize, 0 );
 	sizerPanel->Add( chkNavico, 0, wxALL, 5 );
 
-	checkRaymarine = new wxCheckBox( this, wxID_ANY, wxT("Set Raymarine Day/Night Mode"), wxDefaultPosition, wxDefaultSize, 0 );
-	sizerPanel->Add( checkRaymarine, 0, wxALL, 5 );
+	chkRaymarine = new wxCheckBox( this, wxID_ANY, wxT("Set Raymarine Day/Night Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+	sizerPanel->Add( chkRaymarine, 0, wxALL, 5 );
 
 
 	this->SetSizer( sizerPanel );
@@ -63,7 +63,7 @@ NetworkToolboxBase::NetworkToolboxBase( wxWindow* parent, wxWindowID id, const w
 	chkNetwork->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnInfoChanged ), NULL, this );
 	chkGarmin->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnGarminChanged ), NULL, this );
 	chkNavico->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNavicoChanged ), NULL, this );
-	checkRaymarine->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnRaymarineChanged ), NULL, this );
+	chkRaymarine->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnRaymarineChanged ), NULL, this );
 }
 
 NetworkToolboxBase::~NetworkToolboxBase()
@@ -76,6 +76,6 @@ NetworkToolboxBase::~NetworkToolboxBase()
 	chkNetwork->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnInfoChanged ), NULL, this );
 	chkGarmin->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnGarminChanged ), NULL, this );
 	chkNavico->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnNavicoChanged ), NULL, this );
-	checkRaymarine->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnRaymarineChanged ), NULL, this );
+	chkRaymarine->Disconnect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( NetworkToolboxBase::OnRaymarineChanged ), NULL, this );
 
 }
