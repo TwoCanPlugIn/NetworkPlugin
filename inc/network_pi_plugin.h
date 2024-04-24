@@ -121,8 +121,6 @@ public:
 	
 	int GetToolbarToolCount(void);
 	void OnToolbarToolCallback(int id);
-	void OnToolbarToolDownCallback(int id);
-	void OnToolbarToolUpCallback(int id);
 	void OnContextMenuItemCallback(int id);
 	void SetDefaults(void);	
 	void OnSetupOptions(void);

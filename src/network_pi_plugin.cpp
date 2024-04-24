@@ -203,7 +203,7 @@ int NetworkPlugin::Init(void) {
 	}
 
 	// Notify OpenCPN of our capabilities and what events we want to receive callbacks for
-	return (WANTS_CONFIG | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | INSTALLS_CONTEXTMENU_ITEMS | USES_AUI_MANAGER | INSTALLS_TOOLBOX_PAGE | WANTS_LATE_INIT);
+	return (WANTS_CONFIG | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | INSTALLS_CONTEXTMENU_ITEMS | USES_AUI_MANAGER | INSTALLS_TOOLBOX_PAGE | WANTS_LATE_INIT | WANTS_NMEA_EVENTS | WANTS_PLUGIN_MESSAGING);
 }
 
 void NetworkPlugin::LateInit(void) {
@@ -629,15 +629,6 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 	}
 }
 
-
-// No idea what these twi do
-void NetworkPlugin::OnToolbarToolDownCallback(int id) {
-	wxMessageBox("On toolbar Down Callback");
-}
-
-void NetworkPlugin::OnToolbarToolUpCallback(int id) {
-	wxMessageBox("On toolbar Up Callback");
-}
 
 // Keep the toolbar in synch with the AUI Manager
 void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
