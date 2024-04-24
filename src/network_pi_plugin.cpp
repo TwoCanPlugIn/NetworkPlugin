@@ -221,13 +221,10 @@ void NetworkPlugin::LateInit(void) {
 
 }
 
-bool NetworkPlugin::ShuttingDown(void) {
-	if (wxYES == wxMessageBox("OpenCPN Is Shutting Down", "Shutdown", wxYES_NO | wxICON_QUESTION)) {
-		return false;
-	}
-	else {
-		return true;
-	}
+bool NetworkPlugin::QueryShutDown(void) {
+	bool result = ShuttingDown();
+	wxMessageBox("Shutting Down");
+	return result;
 }
 
 // OpenCPN is either closing down, or has been disabled from the Preferences Dialog
@@ -265,7 +262,12 @@ bool NetworkPlugin::DeInit(void) {
 
 	delete networkDialog;
 
-	return TRUE;
+	if (QueryShutDown()) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
 // Send a SignalK Logon
@@ -350,8 +352,8 @@ void NetworkPlugin::SendNMEA2000(void) {
 
 	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
-	//wxLogMessage(_T("Network Plugin, Write ISO Request for 60928: %d"), result);
+	result = WriteCommDriverN2K(driverHandleN2K, 59904, 255, 5, sharedPointer);
+	wxLogMessage(_T("Network Plugin, Write ISO Request for 60928: %d"), result);
 
 	payload.clear();
 	payload.push_back(126996 & 0xFF);
@@ -360,8 +362,8 @@ void NetworkPlugin::SendNMEA2000(void) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
-	//wxLogMessage(_T("Network Plugin, Write ISO Request for 126996: %d"), result);
+	result = WriteCommDriverN2K(driverHandleN2K, 59904, 255, 5, sharedPointer);
+	wxLogMessage(_T("Network Plugin, Write ISO Request for 126996: %d"), result);
 
 	payload.clear();
 	payload.push_back(126998 & 0xFF);
@@ -370,8 +372,8 @@ void NetworkPlugin::SendNMEA2000(void) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverHandle, 59904, 255, 5, sharedPointer);
-	//wxLogMessage(_T("Network Plugin, Write ISO Request for 126998: %d"), result);
+	result = WriteCommDriverN2K(driverHandleN2K, 59904, 255, 5, sharedPointer);
+	wxLogMessage(_T("Network Plugin, Write ISO Request for 126998: %d"), result);
 
 	payload.clear();
 
@@ -392,7 +394,7 @@ void NetworkPlugin::SendNMEA2000(void) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverN2K, 129025, 255, 5, sharedPointer);
+	//result = WriteCommDriverN2K(driverHandleN2K, 129025, 255, 5, sharedPointer);
 	//wxLogMessage(_T("Network Plugin, Write PGN 129025: %d"), result);
 
 	payload.clear();
@@ -450,8 +452,8 @@ void NetworkPlugin::SendNMEA2000(void) {
 
 	sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
-	//result = WriteCommDriverN2K(driverHandle, 126996, 255, 5, sharedPointer);
-	//wxLogMessage(_T("Network Plugin, Transmit PGN 126996: %d"), result);
+	result = WriteCommDriverN2K(driverHandleN2K, 126996, 255, 5, sharedPointer);
+	wxLogMessage(_T("Network Plugin, Transmit PGN 126996: %d"), result);
 }
 
 
@@ -638,11 +640,11 @@ void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
 
 // Intent is to force the loading of the network map into the dialog
 void NetworkPlugin::OnPaneActivate(wxAuiManagerEvent& event) {
-	wxMessageBox("AUI Activate");
+	wxMessageBox("NetworkPlugin::OnPaneActivate");
 }
 
 void NetworkPlugin::SetColorScheme(PI_ColorScheme cs) {
-	if (displaySynch == TRUE) {
+	if (synchronizeDisplays == TRUE) {
 		if (cs == PI_ColorScheme::PI_GLOBAL_COLOR_SCHEME_DAY) {
 			if (displayNavico) {
 				// BUG BUG SetNavicoDisplayMode(2));

@@ -85,7 +85,7 @@ bool sendHeartbeat;
 bool sendNetwork;
 
 // Set the day/night mode for external instruments
-bool displaySynch;
+bool synchronizeDisplays;
 
 // Flags for each of the different vendors
 bool displayNavico;
@@ -129,8 +129,8 @@ public:
 	void UpdateAuiStatus(void);
 	void LateInit(void);
 	void SetColorScheme(PI_ColorScheme cs);
-	bool ShuttingDown(void);
-
+	bool QueryShutDown(void);
+	
 	// Event Handlers
 	void OnPaneClose(wxAuiManagerEvent& event);
 	void OnPaneActivate(wxAuiManagerEvent& event);
