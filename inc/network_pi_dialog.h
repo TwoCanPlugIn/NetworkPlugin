@@ -1,4 +1,4 @@
-// Copyright(C) 2023 by Steven Adler
+// Copyright(C) 2023-2024 by Steven Adler
 //
 // This file is part of NMEA 2000 Network plugin for OpenCPN.
 //

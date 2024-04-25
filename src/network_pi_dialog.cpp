@@ -1,4 +1,4 @@
-// Copyright(C) 2023 by Steven Adler
+// Copyright(C) 2023-2024 by Steven Adler
 //
 // This file is part of NMEA 2000 Network plugin for OpenCPN.
 //
@@ -58,8 +58,10 @@ NetworkDialog::~NetworkDialog() {
 	// Nothing to do in the destructor
 }
 
+// Debugging AUI Events
 void NetworkDialog::OnActivate(wxAuiManagerEvent& event) {
-	wxMessageBox(wxString::Format("NetworkDialog, OnActivatet: %d", event.GetId()));
+	wxMessageBox(wxString::Format("NetworkDialog, OnActivate: %d", event.GetId()));
+	event.Skip();
 }
 
 // BUG BUG Doesn't seem to be called

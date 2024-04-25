@@ -1,4 +1,4 @@
-// Copyright(C) 2018-2020 by Steven Adler
+// Copyright(C) 2023-2024 by Steven Adler
 //
 // This file is part of NMEA 2000 Network plugin for OpenCPN.
 //
@@ -35,6 +35,7 @@
 #include <wx/fileconf.h>
 #include <wx/aui/aui.h>
 
+// STL 
 #include <map>
 
 // Defines version numbers for this plugin
@@ -131,9 +132,11 @@ public:
 	void SetColorScheme(PI_ColorScheme cs);
 	bool QueryShutDown(void);
 	
-	// Event Handlers
+	// AUI Event Handlers
 	void OnPaneClose(wxAuiManagerEvent& event);
 	void OnPaneActivate(wxAuiManagerEvent& event);
+
+	// Network Plugin event handler
 	void OnPluginEvent(wxCommandEvent &event);
 		
 private:
@@ -166,6 +169,9 @@ private:
 
 	// Get the first available NMEA 2000 network interface
 	wxString GetNetworkInterface(void);
+
+	// Transmit ISO Requests (59904) for Address Claim (60928) 
+	// Product Information (126996) & Heartbeat (126993)
 	void SendNMEA2000(void);
 
 	// Get's the first available SignalK Interface
@@ -176,7 +182,7 @@ private:
 	void SendSignalkUnsubscribe(void);
 	void SendSignalkUpdate(void);
 
-	// Change Brightness & Colour Mode for other instruments
+	// Change Brightness & Colour Mode for other instrument displays
 	bool SetNavicoDisplayBrightness(int brightness, int group);
 	bool SetNavicoDisplayMode(int mode, int group);
 	bool SetNavicoDisplayColour(int colour, int group);

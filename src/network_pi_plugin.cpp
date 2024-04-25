@@ -1,4 +1,4 @@
-// Copyright(C) 2023 by Steven Adler
+// Copyright(C) 2023-2024 by Steven Adler
 //
 // This file is part of NMEA 2000 Network plugin for OpenCPN.
 //
@@ -86,8 +86,7 @@ int NetworkPlugin::Init(void) {
 	wxString rolloverIcon = shareLocn + _T("network-rollover.svg");
 
 	// Initialize the toolbar
-	networkToolbar = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_(PLUGIN_COMMON_NAME), _T("Display devices on NMEA 2000 Network"), NULL, -1, 0, this);
-
+	networkToolbar = InsertPlugInToolSVG(_T("Label"), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,_(PLUGIN_COMMON_NAME), _(PLUGIN_SHORT_DESCRIPTION), NULL, -1, 0, this);
 	// Need to notify Actisense NGT-1 what PGN's we transmit
 	// We only transmit PGN 59904 ISO Request
 	// Guessing that YachtDevices & socketCan ignore this (or at least NOP)
