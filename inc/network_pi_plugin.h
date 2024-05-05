@@ -134,7 +134,6 @@ public:
 	
 	// AUI Event Handlers
 	void OnPaneClose(wxAuiManagerEvent& event);
-	void OnPaneActivate(wxAuiManagerEvent& event);
 
 	// Network Plugin event handler
 	void OnPluginEvent(wxCommandEvent &event);

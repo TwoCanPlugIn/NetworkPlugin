@@ -64,7 +64,6 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 	this->Layout();
 
 	// Connect Events
-	this->Connect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
 	buttonB->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonA ), NULL, this );
 	buttonA->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonB ), NULL, this );
@@ -74,7 +73,6 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 NetworkDialogBase::~NetworkDialogBase()
 {
 	// Disconnect Events
-	this->Disconnect( wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler( NetworkDialogBase::OnActivate ) );
 	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
 	buttonB->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonA ), NULL, this );
 	buttonA->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonB ), NULL, this );

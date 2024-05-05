@@ -215,7 +215,7 @@ void NetworkPlugin::LateInit(void) {
 	auiManager->SetFlags(auiManager->GetFlags() | wxAUI_MGR_ALLOW_ACTIVE_PANE);
 	auiManager->AddPane(networkDialog, paneInfo);
 	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
-	auiManager->Connect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkPlugin::OnPaneActivate), NULL, this);
+
 	auiManager->Update();
 
 }
@@ -255,7 +255,6 @@ bool NetworkPlugin::DeInit(void) {
 	// Cleanup AUI
 	auiManager->SetFlags(auiManager->GetFlags() & ~(wxAUI_MGR_ALLOW_ACTIVE_PANE));
 	auiManager->Disconnect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
-	auiManager->Disconnect(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(NetworkPlugin::OnPaneActivate), NULL, this);
 	auiManager->UnInit();
 	auiManager->DetachPane(networkDialog);
 
@@ -641,10 +640,6 @@ void NetworkPlugin::OnToolbarToolCallback(int id) {
 void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
 	isNetworkDialogVisible = FALSE;
 	SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
-}
-
-// Intent is to force the loading of the network map into the dialog
-void NetworkPlugin::OnPaneActivate(wxAuiManagerEvent& event) {
 }
 
 void NetworkPlugin::SetColorScheme(PI_ColorScheme cs) {

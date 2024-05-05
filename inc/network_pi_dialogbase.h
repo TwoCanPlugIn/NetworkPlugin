@@ -21,7 +21,6 @@
 #include <wx/sizer.h>
 #include <wx/grid.h>
 #include <wx/panel.h>
-#include <wx/aui/aui.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +38,6 @@ class NetworkDialogBase : public wxPanel
 		wxGrid* gridNetwork;
 
 		// Virtual event handlers, override them in your derived class
-		virtual void OnActivate( wxAuiManagerEvent& event ) { event.Skip(); }
 		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void OnButtonA( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnButtonB( wxCommandEvent& event ) { event.Skip(); }
