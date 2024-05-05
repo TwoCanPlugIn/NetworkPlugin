@@ -311,13 +311,16 @@ void NetworkPlugin::SendSignalkUnsubscribe(bool subscribe) {
 
 	wxLogMessage(_T("SignalK (Un)subscribe %s"), message);
 
-	auto payload = std::make_shared<std::vector<uint8_t>>();
+	std::vector<uint8_t> payload;
 
-	for (const auto &ch : message) {
-		payload->push_back(ch);
+	for (const auto& ch : message) {
+		payload.push_back(ch);
 	}
 
-	result = WriteCommDriver(driverHandleSignalK, payload);
+	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
+
+	result = WriteCommDriver(driverHandleSignalK, sharedPointer);
+
 
 	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
@@ -331,13 +334,15 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 
 	wxLogMessage(_T("SignalK Update: %s"), message);
 
-	auto payload = std::make_shared<std::vector<uint8_t>>();
+	std::vector<uint8_t> payload;
 
 	for (const auto &ch : message) {
-		payload->push_back(ch);
+		payload.push_back(ch);
 	}
 
-	result = WriteCommDriver(driverHandleSignalK, payload);
+	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
+
+	result = WriteCommDriver(driverHandleSignalK, sharedPointer);
 
 	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
