@@ -645,7 +645,7 @@ void NetworkPlugin::OnPaneClose(wxAuiManagerEvent& event) {
 
 // Intent is to force the loading of the network map into the dialog
 void NetworkPlugin::OnPaneActivate(wxAuiManagerEvent& event) {
-	wxMessageBox("NetworkPlugin::OnPaneActivate");
+	event.Skip();
 }
 
 void NetworkPlugin::SetColorScheme(PI_ColorScheme cs) {
