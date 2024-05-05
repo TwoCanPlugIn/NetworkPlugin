@@ -179,7 +179,7 @@ private:
 
 	// Send SignalK Logon and Update Messages
 	void SendSignalkLogon(void);
-	void SendSignalkUnsubscribe(void);
+	void SendSignalkUnsubscribe(bool subscribe);
 	void SendSignalkUpdate(void);
 
 	// Change Brightness & Colour Mode for other instrument displays
@@ -394,6 +394,9 @@ private:
 
 	// General Purpose parser
 	wxString ParseMessage(std::vector<uint8_t> data);
+
+	// BUG BUG Remove
+	bool subscribeFlag = true;
 
 };
 

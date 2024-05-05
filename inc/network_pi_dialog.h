@@ -32,6 +32,8 @@
 
 #include <wx/timer.h>
 
+#include <wx/aui/aui.h>
+
 // Typedefs
 // NMEA 2000 Product Information, transmitted in PGN 126996 NMEA Product Information
 typedef struct ProductInformation {
@@ -94,6 +96,9 @@ protected:
 	void OnActivate(wxAuiManagerEvent& event);
 	void OnInit(wxInitDialogEvent& event);
 	void OnRightClick(wxGridEvent& event);
+	void OnButtonA(wxCommandEvent& event);
+	void OnButtonB(wxCommandEvent& event);
+	
 
 private:
 	// Parent Window Size

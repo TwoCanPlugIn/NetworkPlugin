@@ -299,12 +299,18 @@ void NetworkPlugin::SendSignalkLogon(void) {
 }
 
 // Send a SignalK Unsubscribe
-void NetworkPlugin::SendSignalkUnsubscribe(void) {
+void NetworkPlugin::SendSignalkUnsubscribe(bool subscribe) {
 	CommDriverResult result;
+	wxString message = wxEmptyString;
+	if (subscribe) {
+		message = "{\"context\":\"*\",\"unsubscribe\":[{\"path\":\"*\"}]}";
+	}
+	else {
+		message = "{\"context\":\"*\",\"subscribe\":[{\"path\":\"*\"}]}";
+	}
 
-	wxString message = "{\"context\":\"*\",\"unsubscribe\":[{\"path\":\"*\"}]}";
 
-	wxLogMessage(_T("SignalK Unsubscribe %s"), message);
+	wxLogMessage(_T("SignalK (Un)subscribe %s"), message);
 
 	auto payload = std::make_shared<std::vector<uint8_t>>();
 
@@ -322,7 +328,7 @@ void NetworkPlugin::SendSignalkUnsubscribe(void) {
 void NetworkPlugin::SendSignalkUpdate(void) {
 	CommDriverResult result;
 
-	wxString message = "{\"updates\":[{\"source\":{\"label\":\"CAN-BUS\",\"type\":\"NMEA2000\",\"pgn\":127250,\"src\":\"2\",\"deviceInstance\":0},\"values\":[{\"path\":\"navigation.headingTrue\",\"value\":2.0}]}],\"context\":\"vessels.self\"}";
+	wxString message = "{\"context\":\"vessels.self\",\"updates\":[{\"values\":[{\"path\":\"navigation.headingTrue\",\"value\":2.69}]}]}";
 
 	wxLogMessage(_T("SignalK Update: %s"), message);
 
@@ -468,7 +474,7 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	wxLogMessage(_T("Network Plugin, After SignalK Logon"));
 	wxLog::FlushActive();
 
-	SendSignalkUnsubscribe();
+	SendSignalkUnsubscribe(true);
 
 	wxLogMessage(_T("Network Plugin, After SignalK Unsubscribe"));
 	wxLog::FlushActive();
@@ -700,6 +706,15 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 			break;
 		case NETWORKDIALOG_PING_EVENT:
 			// Intent is to "Ping" the NMEA 2000 device
+			// Being used to send SignalK Updates
+			if (event.GetInt() == 1) {
+				SendSignalkUpdate();
+			}
+			if (event.GetInt() == 2) {
+				SendSignalkUnsubscribe(subscribeFlag);
+				subscribeFlag = !subscribeFlag;
+			}
+
 			break;
 		default:
 			event.Skip();
