@@ -104,7 +104,7 @@ int NetworkPlugin::Init(void) {
 	// Experimental, listen for all NMEA 2000 Messages
 	wxDEFINE_EVENT(EVT_N2K, ObservedEvt);
 	for (const auto &it : parameterGroupNumbers) {
-		wxLogMessage(_T("Added Listener: %d, %s"), it.first, it.second);
+		wxLogMessage(_T("Network Plugin, Added Listener: %d, %s"), it.first, it.second);
 		listeners.push_back(std::move(GetListener(NMEA2000Id(it.first), EVT_N2K, this)));
 	}
 
@@ -294,11 +294,11 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	result = WriteCommDriver(driverSignalK, signalkPointer);
 	*/
 
-	wxLogMessage(_T("Network Plugin, Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, Send SignalK Logon : %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
-// Send a SignalK Unsubscribe
+// Send a SignalK Subscribe/Unsubscribe
 void NetworkPlugin::SendSignalkUnsubscribe(bool subscribe) {
 	CommDriverResult result;
 	wxString message = wxEmptyString;
@@ -724,6 +724,7 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 			SetToolbarItemState(networkToolbar, isNetworkDialogVisible);
 			break;
 		case NETWORKDIALOG_PING_EVENT:
+			wxLogMessage(_T("Network Plugin, Event Hadler: %d"), event.GetInt());
 			// Intent is to "Ping" the NMEA 2000 device
 			// Being used to debug Sending SignalK or NMEA 183
 			if (event.GetInt() == wxID_UPDATE) {
@@ -751,14 +752,31 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 
 wxString NetworkPlugin::GetNetworkInterface(wxString protocol) {
 	// retrieves the first matching interface
-	// "nmea2000", "SignalK", "nmea083"
+	// "nmea2000", "SignalK", "nmea0183"
 	std::vector<DriverHandle> activeDrivers;
 	activeDrivers = GetActiveDrivers();
 	// Enumerate the drivers and select the first NMEA 2000 network connection
 	for (auto const &activeDriver : activeDrivers) {
+		wxLogMessage(_T("Network Plugin, Interface: %s"), activeDriver);
 		for (auto const &driver : GetAttributes(activeDriver)) {
-			wxLogMessage(_T("Network Plugin, found driver %s %s"), driver.first, driver.second);
+			if (driver.first == "protocol") {
+				wxLogMessage(_T("Network Plugin, Type: %s, Protocol: %s"),
+					driver.first, driver.second);
+			}
+			if (driver.first == "netAddress") {
+				wxLogMessage(_T("Network Plugin, Type: %s, IP Address: %s"),
+					driver.first, driver.second);
+			}
+			if (driver.first == "netPort") {
+				wxLogMessage(_T("Network Plugin, Type: %s, Port: %s"),
+					driver.first, driver.second);
+			}
+			if (driver.first == "commPort") {
+				wxLogMessage(_T("Network Plugin, Type: %s, Comm Port: %s"),
+					driver.first, driver.second);
+			}
 			if (driver.second == protocol) {
+				wxLogMessage(_T("Network Plugin, For %s using %s"), protocol, activeDriver);
 				return activeDriver;
 			}
 		}
