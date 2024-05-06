@@ -96,8 +96,11 @@ protected:
 	void OnActivate(wxAuiManagerEvent& event);
 	void OnInit(wxInitDialogEvent& event);
 	void OnRightClick(wxGridEvent& event);
-	void OnButtonA(wxCommandEvent& event);
-	void OnButtonB(wxCommandEvent& event);
+	void OnSubscribe(wxCommandEvent& event); 
+	void OnUpdate(wxCommandEvent& event);
+	void OnNMEA(wxCommandEvent& event);
+	void OnAddress(wxCommandEvent& event);
+	void OnProduct(wxCommandEvent& event);
 	
 
 private:

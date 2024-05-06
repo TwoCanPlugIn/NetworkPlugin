@@ -52,9 +52,9 @@
 
 // Plugin receives events from the NMEA 2000 Network dialog
 const wxEventType wxEVT_NETWORK_PLUGIN_EVENT = wxNewEventType();
-const int NETWORKDIALOG_OPEN_EVENT = wxID_HIGHEST + 1;
-const int NETWORKDIALOG_CLOSE_EVENT = wxID_HIGHEST + 2;
-const int NETWORKDIALOG_PING_EVENT = wxID_HIGHEST + 3;
+const int NETWORKDIALOG_OPEN_EVENT = wxID_HIGHEST + 10;
+const int NETWORKDIALOG_CLOSE_EVENT = wxID_HIGHEST + 11;
+const int NETWORKDIALOG_PING_EVENT = wxID_HIGHEST + 12;
 
 // Day, Dusk & Night mode constants
 const int NAVICO_DAY_MODE = 2;
@@ -96,6 +96,7 @@ bool displayGarmin;
 // The NMEA 2000 interfaces
 DriverHandle driverHandleN2K;
 DriverHandle driverHandleSignalK;
+DriverHandle driverHandle183;
 
 // The Network plugin
 class NetworkPlugin : public opencpn_plugin_118, public wxEvtHandler {
@@ -167,19 +168,19 @@ private:
 	void OnTimer(wxTimerEvent &event);
 
 	// Get the first available NMEA 2000 network interface
-	wxString GetNetworkInterface(void);
+	wxString GetNetworkInterface(wxString protocol);
 
 	// Transmit ISO Requests (59904) for Address Claim (60928) 
 	// Product Information (126996) & Heartbeat (126993)
 	void SendNMEA2000(void);
 
-	// Get's the first available SignalK Interface
-	wxString GetSignalKInterface(void);
-
 	// Send SignalK Logon and Update Messages
 	void SendSignalkLogon(void);
 	void SendSignalkUnsubscribe(bool subscribe);
 	void SendSignalkUpdate(void);
+
+	// Send NMEA0183 Sentence
+	void SendNMEA0183(void);
 
 	// Change Brightness & Colour Mode for other instrument displays
 	bool SetNavicoDisplayBrightness(int brightness, int group);

@@ -69,8 +69,10 @@ int NetworkPlugin::Init(void) {
 		//wxString tempString;
 		//configSettings->Read(_T("Interface"), &tempString, wxEmptyString);
 		//driverHandle = std::string(tempString.mb_str());
-		driverHandleN2K = GetNetworkInterface();
-		driverHandleSignalK = GetSignalKInterface();
+		driverHandleN2K = GetNetworkInterface("nmea2000");
+		driverHandleSignalK = GetNetworkInterface("SignalK");
+		driverHandle183 = GetNetworkInterface("nmea0183");
+
 		configSettings->Read(_T("Heartbeat"), &sendHeartbeat, FALSE);
 		configSettings->Read(_T("Request"), &sendNetwork, FALSE);
 		configSettings->Read(_T("Garmin"), &displayGarmin, FALSE);
@@ -156,7 +158,7 @@ int NetworkPlugin::Init(void) {
 
 	// Example of adding context menu items including separators etc.
 	// BUG BUG Remove ??
-	wxMenuItem *myMenu = new wxMenuItem(NULL, wxID_HIGHEST + 1, _T("NMEA 2000"), wxEmptyString, wxITEM_NORMAL, NULL);
+	wxMenuItem *myMenu = new wxMenuItem(NULL, wxID_HIGHEST, _T("NMEA 2000"), wxEmptyString, wxITEM_NORMAL, NULL);
 	networkContextMenu = AddCanvasContextMenuItem(myMenu, this);
 
 	// Wire up the Network Dialog Close event
@@ -181,15 +183,15 @@ int NetworkPlugin::Init(void) {
 
 	// BUG BUG Investigating some different API's
 	// BUG BUG Remove
-	wxLogMessage(_T("*** Distance Unit: %s"),getUsrDistanceUnit_Plugin(-1));
-	wxLogMessage(_T("*** Speed Unit: %s"), getUsrSpeedUnit_Plugin(-1));
-	wxLogMessage(_T("*** Shared: %s"), *GetpSharedDataLocation());
-	wxLogMessage(_T("*** Exe Path: %s"), GetOCPN_ExePath());
-	wxLogMessage(_T("*** Plugin Location: %s"), *GetpPlugInLocation());
-	wxLogMessage(_T("*** Private App: %s"), *GetpPrivateApplicationDataLocation());
-	wxLogMessage(_T("*** Doc Path: %s"), GetWritableDocumentsDir());
-	wxLogMessage(_T("*** Toolbox: %d"), GetToolboxPanelCount());
-	wxLogMessage(_T("*** Data Dir: %s"), GetPluginDataDir(PLUGIN_PACKAGE_NAME)); 
+	wxLogMessage(_T("Network Plugin, Distance Unit: %s"),getUsrDistanceUnit_Plugin(-1));
+	wxLogMessage(_T("Network Plugin, Speed Unit: %s"), getUsrSpeedUnit_Plugin(-1));
+	wxLogMessage(_T("Network Plugin, Shared: %s"), *GetpSharedDataLocation());
+	wxLogMessage(_T("Network Plugin, Exe Path: %s"), GetOCPN_ExePath());
+	wxLogMessage(_T("Network Plugin, Plugin Location: %s"), *GetpPlugInLocation());
+	wxLogMessage(_T("Network Plugin, Private App: %s"), *GetpPrivateApplicationDataLocation());
+	wxLogMessage(_T("Network Plugin, Doc Path: %s"), GetWritableDocumentsDir());
+	wxLogMessage(_T("Network Plugin, Toolbox: %d"), GetToolboxPanelCount());
+	wxLogMessage(_T("Network Plugin, Data Dir: %s"), GetPluginDataDir(PLUGIN_PACKAGE_NAME)); 
 	
 	// BUG BUG GetPluginDataDir doesn't work the way I would expect it to.
 	// It won't use the Plugin Common Name PLUGIN_COMMON_NAME, which is what I would have expected 
@@ -217,12 +219,11 @@ void NetworkPlugin::LateInit(void) {
 	auiManager->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(NetworkPlugin::OnPaneClose), NULL, this);
 
 	auiManager->Update();
-
 }
 
 bool NetworkPlugin::QueryShutDown(void) {
 	bool result = ShuttingDown();
-	wxMessageBox("Shutting Down");
+	wxMessageBox("Shutting Down", "Network Plugin");
 	return result;
 }
 
@@ -274,7 +275,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	
 	wxString message = "{\"requestId\":\"FA1CA3B7-F121-4E5C-99FA-A498BD5CAFEB\",\"login\":{\"username\":\"pi\",\"password\":\"raspberry\"}}";
 	
-	wxLogMessage(_T("SignalK Logon: %s"), message);
+	wxLogMessage(_T("Network Plugin, SignalK Logon: %s"), message);
 
 	auto payload = std::make_shared<std::vector<uint8_t>>();
 
@@ -293,7 +294,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	result = WriteCommDriver(driverSignalK, signalkPointer);
 	*/
 
-	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
@@ -309,7 +310,7 @@ void NetworkPlugin::SendSignalkUnsubscribe(bool subscribe) {
 	}
 
 
-	wxLogMessage(_T("SignalK (Un)subscribe %s"), message);
+	wxLogMessage(_T("Network Plugin, SignalK (Un)subscribe %s"), message);
 
 	std::vector<uint8_t> payload;
 
@@ -322,7 +323,7 @@ void NetworkPlugin::SendSignalkUnsubscribe(bool subscribe) {
 	result = WriteCommDriver(driverHandleSignalK, sharedPointer);
 
 
-	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
@@ -332,7 +333,7 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 
 	wxString message = "{\"context\":\"vessels.self\",\"updates\":[{\"values\":[{\"path\":\"navigation.headingTrue\",\"value\":2.69}]}]}";
 
-	wxLogMessage(_T("SignalK Update: %s"), message);
+	wxLogMessage(_T("Network Plugin, SignalK Update: %s"), message);
 
 	std::vector<uint8_t> payload;
 
@@ -344,7 +345,26 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 
 	result = WriteCommDriver(driverHandleSignalK, sharedPointer);
 
-	wxLogMessage(_T("### Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
+
+}
+
+void NetworkPlugin::SendNMEA0183(void) {
+	CommDriverResult result;
+
+	std::vector<uint8_t> payload;
+
+	std::string sentence = "GPXDR, Hello World";
+
+	for (size_t i = 0; i < sentence.length(); i++) {
+		payload.push_back(sentence.at(i));
+	}
+
+	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
+
+	result = WriteCommDriver(driverHandle183, sharedPointer);
+
+	wxLogMessage(_T("Network Plugin, Send NMEA 0183 %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
@@ -470,7 +490,7 @@ void NetworkPlugin::SendNMEA2000(void) {
 // Timer sends heartbeat and network request PGN's
 void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 
-	wxLogMessage(_T("Network Plugin - On Timer"));
+	wxLogMessage(_T("Network Plugin, On Timer"));
 	wxLog::FlushActive();
 	
 	SendSignalkLogon();
@@ -561,7 +581,7 @@ void NetworkPlugin::OnSetupOptions(void) {
 
 // I have no idea when this is called
 void NetworkPlugin::SetupToolboxPanel(int page_sel, wxNotebook* pnotebook) {
-	wxMessageBox(wxString::Format(_T("SetupToolboxPanel: %d"), page_sel));
+	wxMessageBox(wxString::Format(_T("SetupToolboxPanel: %d"), page_sel), "Network Plugin");
 }
 
 // Invoked when the OpenCPN Toolbox OK, Apply or Cancel buttons are pressed
@@ -705,13 +725,22 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 			break;
 		case NETWORKDIALOG_PING_EVENT:
 			// Intent is to "Ping" the NMEA 2000 device
-			// Being used to send SignalK Updates
-			if (event.GetInt() == 1) {
+			// Being used to debug Sending SignalK or NMEA 183
+			if (event.GetInt() == wxID_UPDATE) {
 				SendSignalkUpdate();
 			}
-			if (event.GetInt() == 2) {
+			if (event.GetInt() == wxID_SUBSCRIBE) {
 				SendSignalkUnsubscribe(subscribeFlag);
 				subscribeFlag = !subscribeFlag;
+			}
+			if (event.GetInt() == wxID_NMEA) {
+				SendNMEA0183();
+			}
+			if (event.GetInt() == wxID_PRODUCT) {
+				SendNMEA2000();
+			}
+			if (event.GetInt() == wxID_ADDRESS) {
+				wxMessageBox("Not implemented");
 			}
 
 			break;
@@ -720,14 +749,16 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 	}
 }
 
-wxString NetworkPlugin::GetNetworkInterface(void) {
-	// retrieves the first NMEA 2000 Network Interface
+wxString NetworkPlugin::GetNetworkInterface(wxString protocol) {
+	// retrieves the first matching interface
+	// "nmea2000", "SignalK", "nmea083"
 	std::vector<DriverHandle> activeDrivers;
 	activeDrivers = GetActiveDrivers();
 	// Enumerate the drivers and select the first NMEA 2000 network connection
 	for (auto const &activeDriver : activeDrivers) {
 		for (auto const &driver : GetAttributes(activeDriver)) {
-			if (driver.second == "nmea2000") {
+			wxLogMessage(_T("Network Plugin, found driver %s %s"), driver.first, driver.second);
+			if (driver.second == protocol) {
 				return activeDriver;
 			}
 		}
@@ -957,23 +988,6 @@ bool NetworkPlugin::SetRaymarineDisplayMode(int mode, int group) {
 		wxLogMessage(_T("Network Plugin, Error sending Raymarine Display Mode: %d"), result);
 		return false;
 	}
-}
-
-wxString NetworkPlugin::GetSignalKInterface(void) {
-	// retrieves the first SignalK Network Interface
-	std::vector<DriverHandle> activeDrivers;
-	activeDrivers = GetActiveDrivers();
-	// Enumerate the drivers and select the first NMEA 2000 network connection
-	for (auto const &activeDriver : activeDrivers) {
-		wxLogMessage(_T("Enumerating %s"), activeDriver.c_str());
-		for (auto const &driver : GetAttributes(activeDriver)) {
-			if (driver.second == "SignalK") {
-				wxLogMessage(_T("Found and Using %s"), activeDriver);
-				return activeDriver;
-			}
-		}
-	}
-	return wxEmptyString;
 }
 
 

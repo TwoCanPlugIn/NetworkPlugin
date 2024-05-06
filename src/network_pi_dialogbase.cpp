@@ -20,11 +20,20 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 
 	bSizer4->Add( 0, 0, 4, wxEXPAND, 5 );
 
-	buttonB = new wxButton( this, wxID_ANY, wxT("B"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer4->Add( buttonB, 1, wxALL, 5 );
+	buttonSubscribe = new wxButton( this, wxID_HIGHEST+1, wxT("(Un)Subscribe"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer4->Add( buttonSubscribe, 1, wxALL, 5 );
 
-	buttonA = new wxButton( this, wxID_ANY, wxT("A"), wxDefaultPosition, wxDefaultSize, 0 );
-	bSizer4->Add( buttonA, 1, wxALL, 5 );
+	buttonUpdate = new wxButton( this, wxID_HIGHEST+2, wxT("Update"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer4->Add( buttonUpdate, 1, wxALL, 5 );
+
+	buttonNMEA = new wxButton( this, wxID_HIGHEST+3, wxT("NMEA 0183"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer4->Add( buttonNMEA, 0, wxALL, 5 );
+
+	butonAddress = new wxButton( this, wxID_HIGHEST+4, wxT("Rqst 60928"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer4->Add( butonAddress, 0, wxALL, 5 );
+
+	buttonProduct = new wxButton( this, wxID_HIGHEST+5, wxT("Rqst 126996"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer4->Add( buttonProduct, 0, wxALL, 5 );
 
 
 	sizerPanel->Add( bSizer4, 1, wxEXPAND, 5 );
@@ -65,8 +74,11 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 
 	// Connect Events
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
-	buttonB->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonA ), NULL, this );
-	buttonA->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonB ), NULL, this );
+	buttonSubscribe->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnSubscribe ), NULL, this );
+	buttonUpdate->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnUpdate ), NULL, this );
+	buttonNMEA->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnNMEA ), NULL, this );
+	butonAddress->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnAddress ), NULL, this );
+	buttonProduct->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnProduct ), NULL, this );
 	gridNetwork->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
 }
 
@@ -74,8 +86,11 @@ NetworkDialogBase::~NetworkDialogBase()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( NetworkDialogBase::OnInit ) );
-	buttonB->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonA ), NULL, this );
-	buttonA->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnButtonB ), NULL, this );
+	buttonSubscribe->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnSubscribe ), NULL, this );
+	buttonUpdate->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnUpdate ), NULL, this );
+	buttonNMEA->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnNMEA ), NULL, this );
+	butonAddress->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnAddress ), NULL, this );
+	buttonProduct->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( NetworkDialogBase::OnProduct ), NULL, this );
 	gridNetwork->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( NetworkDialogBase::OnRightClick ), NULL, this );
 
 }

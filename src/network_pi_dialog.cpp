@@ -103,17 +103,36 @@ void NetworkDialog::OnRightClick(wxGridEvent &event) {
 	wxMessageBox(wxString::Format("Event: %d, Selected: %d", event.GetId(), event.GetSelection()));
 }
 
-void NetworkDialog::OnButtonA(wxCommandEvent& event) {
+void NetworkDialog::OnSubscribe(wxCommandEvent& event) {
 	wxEvent *myEvent = event.Clone();
 	event.SetId(NETWORKDIALOG_PING_EVENT);
-	event.SetInt(1);
 	wxQueueEvent(eventHandler, myEvent);
-
 }
 
-void NetworkDialog::OnButtonB(wxCommandEvent& event) {
+void NetworkDialog::OnUpdate(wxCommandEvent& event) {
 	wxEvent* myEvent = event.Clone();
 	event.SetId(NETWORKDIALOG_PING_EVENT);
-	event.SetInt(2);
 	wxQueueEvent(eventHandler, myEvent);
 }
+
+void NetworkDialog::OnNMEA(wxCommandEvent& event) {
+	wxEvent* myEvent = event.Clone();
+	event.SetId(NETWORKDIALOG_PING_EVENT);
+	wxQueueEvent(eventHandler, myEvent);
+}
+
+void NetworkDialog::OnAddress(wxCommandEvent& event) {
+	wxEvent* myEvent = event.Clone();
+	event.SetId(NETWORKDIALOG_PING_EVENT);
+	wxQueueEvent(eventHandler, myEvent);
+}
+
+void NetworkDialog::OnProduct(wxCommandEvent& event) {
+	wxEvent* myEvent = event.Clone();
+	event.SetId(NETWORKDIALOG_PING_EVENT);
+	wxQueueEvent(eventHandler, myEvent);
+}
+
+
+
+

@@ -24,6 +24,12 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
+constexpr int wxID_SUBSCRIBE = wxID_HIGHEST + 1;
+constexpr int wxID_NMEA = wxID_HIGHEST + 2;
+constexpr int wxID_UPDATE = wxID_HIGHEST + 3;
+constexpr int wxID_PRODUCT = wxID_HIGHEST + 4;
+constexpr int wxID_ADDRESS = wxID_HIGHEST + 5;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class NetworkDialogBase
@@ -33,14 +39,20 @@ class NetworkDialogBase : public wxPanel
 	private:
 
 	protected:
-		wxButton* buttonB;
-		wxButton* buttonA;
+		wxButton* buttonSubscribe;
+		wxButton* buttonUpdate;
+		wxButton* buttonNMEA;
+		wxButton* butonAddress;
+		wxButton* buttonProduct;
 		wxGrid* gridNetwork;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void OnInit( wxInitDialogEvent& event ) { event.Skip(); }
-		virtual void OnButtonA( wxCommandEvent& event ) { event.Skip(); }
-		virtual void OnButtonB( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnSubscribe( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnUpdate( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnNMEA( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnAddress( wxCommandEvent& event ) { event.Skip(); }
+		virtual void OnProduct( wxCommandEvent& event ) { event.Skip(); }
 		virtual void OnRightClick( wxGridEvent& event ) { event.Skip(); }
 
 
