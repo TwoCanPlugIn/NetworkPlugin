@@ -105,31 +105,36 @@ void NetworkDialog::OnRightClick(wxGridEvent &event) {
 
 void NetworkDialog::OnSubscribe(wxCommandEvent& event) {
 	wxEvent *myEvent = event.Clone();
-	event.SetId(NETWORKDIALOG_PING_EVENT);
+	myEvent->SetEventType(wxEVT_NETWORK_PLUGIN_EVENT);
+	myEvent->SetId(NETWORKDIALOG_PING_EVENT);
 	wxQueueEvent(eventHandler, myEvent);
 }
 
 void NetworkDialog::OnUpdate(wxCommandEvent& event) {
 	wxEvent* myEvent = event.Clone();
-	event.SetId(NETWORKDIALOG_PING_EVENT);
+	myEvent->SetEventType(wxEVT_NETWORK_PLUGIN_EVENT);
+	myEvent->SetId(NETWORKDIALOG_PING_EVENT);
 	wxQueueEvent(eventHandler, myEvent);
 }
 
 void NetworkDialog::OnNMEA(wxCommandEvent& event) {
 	wxEvent* myEvent = event.Clone();
-	event.SetId(NETWORKDIALOG_PING_EVENT);
+	myEvent->SetEventType(wxEVT_NETWORK_PLUGIN_EVENT);
+	myEvent->SetId(NETWORKDIALOG_PING_EVENT);
 	wxQueueEvent(eventHandler, myEvent);
 }
 
 void NetworkDialog::OnAddress(wxCommandEvent& event) {
 	wxEvent* myEvent = event.Clone();
-	event.SetId(NETWORKDIALOG_PING_EVENT);
+	myEvent->SetEventType(wxEVT_NETWORK_PLUGIN_EVENT);
+	myEvent->SetId(NETWORKDIALOG_PING_EVENT);
 	wxQueueEvent(eventHandler, myEvent);
 }
 
 void NetworkDialog::OnProduct(wxCommandEvent& event) {
 	wxEvent* myEvent = event.Clone();
-	event.SetId(NETWORKDIALOG_PING_EVENT);
+	myEvent->SetEventType(wxEVT_NETWORK_PLUGIN_EVENT);
+	myEvent->SetId(NETWORKDIALOG_PING_EVENT);
 	wxQueueEvent(eventHandler, myEvent);
 }
 

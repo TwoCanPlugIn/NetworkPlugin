@@ -50,22 +50,26 @@ void NetworkToolbox::ListInterfaces(void) {
 	int i = 0;
 	// Enumerate the drivers and select a NMEA 2000 network connection
 	for (auto const &activeDriver : activeDrivers) {
+		wxLogMessage(_T("Network Plugin, Interface: %s"), activeDriver);
 		for (auto const &driver : GetAttributes(activeDriver)) {
-			wxLogMessage(_T("Network Plugin, Interface: %s"), activeDriver);
 			if (driver.first == "protocol") {
 				wxLogMessage(_T("Network Plugin, Type: %s, Protocol: %s"),
 					driver.first, driver.second);
 			}
-			if (driver.first == "netAddress") {
+			else if (driver.first == "netAddress") {
 				wxLogMessage(_T("Network Plugin, Type: %s, IP Address: %s"),
 					driver.first, driver.second);
 			}
-			if (driver.first == "netPort") {
+			else if (driver.first == "netPort") {
 				wxLogMessage(_T("Network Plugin, Type: %s, Port: %s"),
 					driver.first, driver.second);
 			}
-			if (driver.first == "commPort") {
+			else if (driver.first == "commPort") {
 				wxLogMessage(_T("Network Plugin, Type: %s, Comm Port: %s"),
+					driver.first, driver.second);
+			}
+			else {
+				wxLogMessage(_T("Network Plugin, Type: %s, Entry: %s"),
 					driver.first, driver.second);
 			}
 				
