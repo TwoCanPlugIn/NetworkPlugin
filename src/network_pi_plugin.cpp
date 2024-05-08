@@ -364,6 +364,8 @@ void NetworkPlugin::SendNMEA0183(void) {
 
 	result = WriteCommDriver(driverHandle183, sharedPointer);
 
+	wxMessageBox(wxString::Format("Send NMEA 0183: %d", result));
+
 	wxLogMessage(_T("Network Plugin, Send NMEA 0183 %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
@@ -643,7 +645,8 @@ void NetworkPlugin::OnContextMenuItemCallback(int id) {
 		//auiManager->GetPane(_T(PLUGIN_COMMON_NAME)).Show(isNetworkDialogVisible);
 		//auiManager->Update();
 		//SetToolbarItemState(id, isNetworkDialogVisible);
-		wxMessageBox(wxString::Format(_T("Chart Tilt: %f"), GetCanvasTilt()));
+		//wxMessageBox(wxString::Format(_T("Chart Tilt: %f"), GetCanvasTilt()));
+		SendNMEA0183();
 	}
 }
 
@@ -706,8 +709,6 @@ void NetworkPlugin::SetColorScheme(PI_ColorScheme cs) {
 		}
 	}
 }
-
-
 
 // Handle events from the dialog
 // BUG BUG Any events to handle ??
