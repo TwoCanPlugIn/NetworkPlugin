@@ -19,9 +19,9 @@ environment:
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
 ## This can be built in Circleci and is currently the FE2 default
-##
-#  - job_name: Visual Studio 2022
-#    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+## CircleCi is failing on Gettext WTF
+  - job_name: Visual Studio 2022
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
 
 matrix:
