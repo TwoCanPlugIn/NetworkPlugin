@@ -30,9 +30,11 @@
 // Note wxFormBuilder used to generate UI
 #include "network_pi_dialogbase.h"
 
-#include <wx/timer.h>
-
+// wxWidgets includes
 #include <wx/aui/aui.h>
+
+// STL includes
+#include <vector>
 
 // Typedefs
 // NMEA 2000 Product Information, transmitted in PGN 126996 NMEA Product Information
