@@ -27,7 +27,7 @@ workflows:
     build_all:
         jobs:
 ## ----------------------
-## OpenCPN 5.8 Plugins - API118/117
+## OpenCPN 5.8 Plugins
 ## ----------------------
         - build-android-arm64:
              <<: *std-filters
@@ -63,29 +63,29 @@ workflows:
               <<: *std-filters
 
 ## -------------------------------------------
-## OpenCPN 5.6.2 Plugins  Frozen - 28/05/2023 - API117
+## OpenCPN 5.6.2 Plugins  Frozen - 28/05/2023
 ## ------------------------------------------
 ## Circleci will not build for macos 11 so removed - 18/10/2023
-#        - build-macos:
-#             <<: *std-filters
+        - build-macos:
+             <<: *std-filters
 ## Appveyor no longer builds for Windows.
-#        - build-msvc-2022:
-#            <<: *std-filters
-#        - build-debian-armhf-10-buster:
-#            <<: *std-filters
-#        - build-debian-armhf-10-buster-gtk3:
-#            <<: *std-filters
-#        - build-debian-arm64-10-buster:
-#            <<: *std-filters
-#        - build-debian-x86_64-10-buster:
-#            <<: *std-filters
+        - build-msvc-2022:
+            <<: *std-filters
+        - build-debian-armhf-10-buster:
+            <<: *std-filters
+        - build-debian-armhf-10-buster-gtk3:
+            <<: *std-filters
+        - build-debian-arm64-10-buster:
+            <<: *std-filters
+        - build-debian-x86_64-10-buster:
+            <<: *std-filters
 
 ## -------------------------------------
 ## UBUNTU OS  Frozen - 28/05/2023  DROP
 ## -------------------------------------
 ## KEEP needed for Raspbian OpenCPN v5.6
-#        - build-ubuntu-armhf-1804-buster:
-#            <<: *std-filters
+        - build-ubuntu-armhf-1804-buster:
+            <<: *std-filters
 ##        - build-ubuntu-x86_64-1804-bionic:
 ##            <<: *std-filters
 ##        - build-ubuntu-x86_64-1804-bionic-gtk3:
@@ -172,7 +172,6 @@ jobs:
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-macos.sh
         - deploy-code
-
     build-macos-universal:
         macos:
             xcode: "12.5.1"
@@ -200,7 +199,6 @@ jobs:
             - run: >
                   sh -c "cat build/*.xml"
             - deploy-code
-
     build-msvc-wx32-2022:
         executor:
             name: win/server-2022
