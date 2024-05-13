@@ -19,8 +19,7 @@
 ## *   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx                                       *
 #-----------------------------------------------------------------------------
 # Frontend2 Author: Jon Gough 
-# Testplugin(TP) v1.0.286.3 29/12/2023 DD/MM/YYYY format
-# buildCI:yes useODAPI:yes validateJSON:yes
+# Network Plugin: twocanplugin@hotmail.com
 # ---------------------------------------------------------------------------
 ## -- When changing this file do NOT change the order of the sections.    -- ##
 ## -- Make changes only between the section blocks identified             -- ##
@@ -46,19 +45,19 @@ if(COMMAND cmake_policy)
 endif(COMMAND cmake_policy)
 
 # define plugin name, owner and versions
-set(VERBOSE_NAME "NMEA 2000 Network")
-set(COMMON_NAME "NMEA 2000 Network")
-set(TITLE_NAME "NETWORK")
+set(VERBOSE_NAME "NetworkPlugin")
+set(COMMON_NAME "NetworkPlugin")
+set(TITLE_NAME "networkplugin")
 set(PACKAGE_CONTACT "twocanplugin@hotmail.com")
-set(PACKAGE "network_pi")
-set(SHORT_DESCRIPTION "Display NMEA 2000 Network devices")
-set(LONG_DESCRIPTION "Displays network devices and their product details and configuration information")
+set(PACKAGE "networkplugin")
+set(SHORT_DESCRIPTION "NMEA 2000 Network Utilities")
+set(LONG_DESCRIPTION "Displays NMEA 2000 Neytwork Devices and other stuff")
 
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "2")
-set(VERSION_PATCH "1")
-set(VERSION_TWEAK "2")
-set(VERSION_DATE  "13/04/2024")
+set(VERSION_PATCH "0")
+set(VERSION_TWEAK "0")
+set(VERSION_DATE  "15/03/2024") #DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov58")
 
 set(OCPN_API_VERSION_MAJOR "1")
@@ -77,13 +76,10 @@ set(BETA "beta")   #Standard Repos
 set(ALPHA "alpha") #Standard Repos
 
 # Set if  Cloudsmith Base Repository name does not match your Git Repository name.
-#set(CLOUDSMITH_BASE_REPOSITORY "${GIT_REPOSITORY_NAME}")
-#set(CLOUDSMITH_BASE_REPOSITORY "opencpn-plugins")  #Ricks's customization
-set(CLOUDSMITH_BASE_REPOSITORY "network_pi")  
+set(CLOUDSMITH_BASE_REPOSITORY "network_pi")
 
 # Set the following to use OpenCPN cloudsmith repositories instead of own repositories
 set(CLOUDSMITH_USER "steven-adler")
-#set(CLOUDSMITH_USER "jon-gough")
 
 set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:developer_manual:plugins:beta_plugins:network_pi")
 set(XML_SUMMARY ${SHORT_DESCRIPTION})
@@ -151,14 +147,14 @@ set(SRCS
 	src/network_pi_toolbox.cpp
 	src/network_pi_toolboxbase.cpp)
 
+
 set(HDRS
     inc/network_pi_dialog.h
 	inc/network_pi_dialogbase.h
 	inc/network_pi_icons.h
 	inc/network_pi_plugin.h
 	inc/network_pi_toolbox.h
-	inc/network_pi_toolboxbase.h
-)
+	inc/network_pi_toolboxbase.h)
 
 add_definitions(-DPLUGIN_USE_SVG)
 
@@ -187,6 +183,8 @@ endif(PI_JSON_SCHEMA_VALIDATOR)
 
 ## ----- If using JSON validation in plugin section above is needed --------##
 
+if(QT_ANDROID)
+endif(QT_ANDROID)
 
 ##=============================================================
 ## Change as required to collect all the set( headers and SRCS
@@ -230,10 +228,10 @@ if(NOT OCPN_FLATPAK_CONFIG)
     #add_subdirectory(opencpn-libs/jsonlib)
     #target_link_libraries(${PACKAGE_NAME} ocpn::jsonlib)
 
-    #add_subdirectory(opencpn-libs/wxJSON)
-    #target_link_libraries(${PACKAGE_NAME} ocpn::wxjson)
+    add_subdirectory(opencpn-libs/wxJSON)
+    target_link_libraries(${PACKAGE_NAME} ocpn::wxjson)
 
-   # add_subdirectory(opencpn-libs/plugin_dc)
+    #add_subdirectory(opencpn-libs/plugin_dc)
     #target_link_libraries(${PACKAGE_NAME} ocpn::plugin-dc)
 
 endif(NOT OCPN_FLATPAK_CONFIG)
@@ -288,3 +286,4 @@ get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTO
 foreach(dir ${dirs})
     message(STATUS "${CMLOC}dir='${dir}'")
 endforeach()
+

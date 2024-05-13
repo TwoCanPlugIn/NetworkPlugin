@@ -19,17 +19,17 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
+#include <wx/textctrl.h>
 #include <wx/grid.h>
 #include <wx/panel.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
-constexpr int wxID_SUBSCRIBE = wxID_HIGHEST + 1;
-constexpr int wxID_NMEA = wxID_HIGHEST + 2;
-constexpr int wxID_UPDATE = wxID_HIGHEST + 3;
-constexpr int wxID_PRODUCT = wxID_HIGHEST + 4;
-constexpr int wxID_ADDRESS = wxID_HIGHEST + 5;
-
+constexpr  int ID_SUBSCRIBE = wxID_HIGHEST + 1;
+constexpr  int ID_UPDATE = wxID_HIGHEST + 2;
+constexpr  int ID_NMEA = wxID_HIGHEST + 3;
+constexpr  int ID_ADDRESS = wxID_HIGHEST + 4;
+constexpr  int ID_PRODUCT = wxID_HIGHEST + 5;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class NetworkDialogBase
@@ -44,6 +44,7 @@ class NetworkDialogBase : public wxPanel
 		wxButton* buttonNMEA;
 		wxButton* butonAddress;
 		wxButton* buttonProduct;
+		wxTextCtrl* editBox;
 		wxGrid* gridNetwork;
 
 		// Virtual event handlers, override them in your derived class

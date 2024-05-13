@@ -99,6 +99,17 @@ int NetworkPlugin::Init(void) {
 	// The map of network devices (0-253)
 	networkDevices.reserve(254);
 
+	// Initialize SignalK Listeners
+	// self.vessels.propulsion
+	wxDEFINE_EVENT(EVT_SIGNALK, ObservedEvt);
+	SignalkId id_signalk = SignalkId("self");
+	listener_SignalK = std::move(GetListener(id_signalk, EVT_SIGNALK, this));
+	Bind(EVT_SIGNALK, [&](ObservedEvt ev) {
+		HandleSignalK(ev);
+		});
+
+	wxLogMessage(_T("Network Plugin, Added SignalK Listener"));
+
 	// Initialize NMEA 2000 Listeners
 
 	// Experimental, listen for all NMEA 2000 Messages
@@ -197,7 +208,7 @@ int NetworkPlugin::Init(void) {
 	// It won't use the Plugin Common Name PLUGIN_COMMON_NAME, which is what I would have expected 
 
 	// Start a timer to transmit NMEA 2000 network queries
-	if ((sendHeartbeat) && ((!driverHandleN2K.empty()) || (!driverHandleSignalK.empty()) ) ){
+	if ((sendHeartbeat) && ((!driverHandleN2K.empty()) || (!driverHandle183.empty()) || (!driverHandleSignalK.empty()) ) ){
 		heartbeatTimer = new wxTimer();
 		heartbeatTimer->Connect(heartbeatTimer->GetId(), wxEVT_TIMER, wxTimerEventHandler(NetworkPlugin::OnTimer), NULL, this);
 		heartbeatTimer->Start(heartbeatInterval * 60000);
@@ -221,9 +232,10 @@ void NetworkPlugin::LateInit(void) {
 	auiManager->Update();
 }
 
+// This works, just determine the result
 bool NetworkPlugin::QueryShutDown(void) {
 	bool result = ShuttingDown();
-	wxMessageBox("Shutting Down", "Network Plugin");
+	wxMessageBox("Shutting Down: " + result , "Network Plugin");
 	return result;
 }
 
@@ -275,15 +287,20 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	
 	wxString message = "{\"requestId\":\"FA1CA3B7-F121-4E5C-99FA-A498BD5CAFEB\",\"login\":{\"username\":\"pi\",\"password\":\"raspberry\"}}";
 	
-	wxLogMessage(_T("Network Plugin, SignalK Logon: %s"), message);
+	wxLogMessage(_T("Network Plugin, Start SignalK Logon: %s"), message);
 
-	auto payload = std::make_shared<std::vector<uint8_t>>();
+	//auto payload = std::make_shared<std::vector<uint8_t>>();
 
-	for (const auto &ch : message) {
-		payload->push_back(ch);
+	std::vector<uint8_t> payload;
+
+	for (size_t i = 0; i < message.Length(); i++) {
+		payload.push_back(message.at(i));
 	}
 
-	result = WriteCommDriver(driverHandleSignalK, payload);
+	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
+
+
+	result = WriteCommDriver(driverHandleSignalK, sharedPointer);
 
 	/*
 	std::vector<uint8_t>SignalK;
@@ -294,7 +311,7 @@ void NetworkPlugin::SendSignalkLogon(void) {
 	result = WriteCommDriver(driverSignalK, signalkPointer);
 	*/
 
-	wxLogMessage(_T("Network Plugin, Send SignalK Logon : %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, End SignalK Logon : %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
@@ -310,12 +327,12 @@ void NetworkPlugin::SendSignalkUnsubscribe(bool subscribe) {
 	}
 
 
-	wxLogMessage(_T("Network Plugin, SignalK (Un)subscribe %s"), message);
+	wxLogMessage(_T("Network Plugin, Start SignalK (Un)subscribe %s"), message);
 
 	std::vector<uint8_t> payload;
 
-	for (const auto& ch : message) {
-		payload.push_back(ch);
+	for (size_t i = 0; i < message.Length(); i++) {
+		payload.push_back(message.at(i));
 	}
 
 	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
@@ -323,7 +340,7 @@ void NetworkPlugin::SendSignalkUnsubscribe(bool subscribe) {
 	result = WriteCommDriver(driverHandleSignalK, sharedPointer);
 
 
-	wxLogMessage(_T("Network Plugin, Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, End SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
@@ -333,28 +350,29 @@ void NetworkPlugin::SendSignalkUpdate(void) {
 
 	wxString message = "{\"context\":\"vessels.self\",\"updates\":[{\"values\":[{\"path\":\"navigation.headingTrue\",\"value\":2.69}]}]}";
 
-	wxLogMessage(_T("Network Plugin, SignalK Update: %s"), message);
+	wxLogMessage(_T("Network Plugin, Start SignalK Update: %s"), message);
 
 	std::vector<uint8_t> payload;
 
-	for (const auto &ch : message) {
-		payload.push_back(ch);
+	for (size_t i = 0; i < message.Length(); i++) {
+		payload.push_back(message.at(i));
 	}
 
 	auto sharedPointer = std::make_shared<std::vector<uint8_t> >(std::move(payload));
 
 	result = WriteCommDriver(driverHandleSignalK, sharedPointer);
 
-	wxLogMessage(_T("Network Plugin, Send SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, Eend SignalK: %s, %d"), driverHandleSignalK.c_str(), result);
 
 }
 
-void NetworkPlugin::SendNMEA0183(void) {
+// Sends stuff to a NMEA 183 connection
+// This works
+void NetworkPlugin::SendNMEA0183(wxString sentence) {
 	CommDriverResult result;
 
 	std::vector<uint8_t> payload;
 
-	std::string sentence = "GPXDR, Hello World";
 
 	for (size_t i = 0; i < sentence.length(); i++) {
 		payload.push_back(sentence.at(i));
@@ -366,7 +384,7 @@ void NetworkPlugin::SendNMEA0183(void) {
 
 	wxMessageBox(wxString::Format("Send NMEA 0183: %d", result));
 
-	wxLogMessage(_T("Network Plugin, Send NMEA 0183 %s, %d"), driverHandleSignalK.c_str(), result);
+	wxLogMessage(_T("Network Plugin, Send NMEA 0183 %s, %s, %d"), driverHandle183.c_str(), sentence, result);
 
 }
 
@@ -514,6 +532,8 @@ void NetworkPlugin::OnTimer(wxTimerEvent &event) {
 	
 	wxLogMessage(_T("Network Plugin, After NMEA2000"));
 	wxLog::FlushActive();
+
+	SendNMEA0183("$ECGLL,3748.784,N,12226.831,W,194310,A,A*46");
 }
 
 // Called when OpenCPN is loading saved AUI pages
@@ -646,7 +666,7 @@ void NetworkPlugin::OnContextMenuItemCallback(int id) {
 		//auiManager->Update();
 		//SetToolbarItemState(id, isNetworkDialogVisible);
 		//wxMessageBox(wxString::Format(_T("Chart Tilt: %f"), GetCanvasTilt()));
-		SendNMEA0183();
+		SendNMEA0183("$ECGLL,3748.784,N,12226.831,W,194310,A,A*46");
 	}
 }
 
@@ -728,20 +748,20 @@ void NetworkPlugin::OnPluginEvent(wxCommandEvent &event) {
 			wxLogMessage(_T("Network Plugin, Event Hadler: %d"), event.GetInt());
 			// Intent is to "Ping" the NMEA 2000 device
 			// Being used to debug Sending SignalK or NMEA 183
-			if (event.GetInt() == wxID_UPDATE) {
+			if (event.GetInt() == ID_UPDATE) {
 				SendSignalkUpdate();
 			}
-			if (event.GetInt() == wxID_SUBSCRIBE) {
+			if (event.GetInt() == ID_SUBSCRIBE) {
 				SendSignalkUnsubscribe(subscribeFlag);
 				subscribeFlag = !subscribeFlag;
 			}
-			if (event.GetInt() == wxID_NMEA) {
-				SendNMEA0183();
+			if (event.GetInt() == ID_NMEA) {
+				SendNMEA0183(event.GetString());
 			}
-			if (event.GetInt() == wxID_PRODUCT) {
+			if (event.GetInt() == ID_PRODUCT) {
 				SendNMEA2000();
 			}
-			if (event.GetInt() == wxID_ADDRESS) {
+			if (event.GetInt() == ID_ADDRESS) {
 				wxMessageBox("Not implemented");
 			}
 
@@ -1040,6 +1060,25 @@ void NetworkPlugin::HandleN2K(ObservedEvt ev) {
 	std::vector<uint8_t>payload = GetN2000Payload(NMEA2000Id(123456), ev);
 	ParseMessage(payload);
 }	
+
+// BUG BUG Core OpenCPN has yet to implement the GetSignalKPayload function
+void NetworkPlugin::HandleSignalK(ObservedEvt ev) {
+	// auto payload = GetSignalkPayload(ev);
+	//const auto msg = *std::static_pointer_cast<const wxJSONValue>(payload); 
+
+	//The map contains the following entries:
+	// "Data": the parsed json message
+	// -"ErrorCount" : int, the number of parsing errors
+	// -"WarningCount" : int, the number of parsing warnings
+	// -"Errors" : list of strings, error messages.
+	// -"Warnings" : list of strings, warning messages..
+	// -"Context" : string, message context
+	// -"ContextSelf" : string, own ship context.
+	//
+
+	//wxLogMessage(_T("#####, %s"),msg.AsString());
+}
+
 
 // PGN 60928 ISO Address Claim
 void NetworkPlugin::HandleN2K_60928(ObservedEvt ev) {

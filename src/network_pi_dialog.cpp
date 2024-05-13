@@ -118,9 +118,9 @@ void NetworkDialog::OnUpdate(wxCommandEvent& event) {
 }
 
 void NetworkDialog::OnNMEA(wxCommandEvent& event) {
-	wxEvent* myEvent = event.Clone();
-	myEvent->SetEventType(wxEVT_NETWORK_PLUGIN_EVENT);
+	wxCommandEvent* myEvent = new wxCommandEvent(wxEVT_NETWORK_PLUGIN_EVENT);
 	myEvent->SetId(NETWORKDIALOG_PING_EVENT);
+	myEvent->SetString(editBox->GetValue());
 	wxQueueEvent(eventHandler, myEvent);
 }
 

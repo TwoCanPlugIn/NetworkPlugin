@@ -20,23 +20,32 @@ NetworkDialogBase::NetworkDialogBase( wxWindow* parent, wxWindowID id, const wxP
 
 	bSizer4->Add( 0, 0, 4, wxEXPAND, 5 );
 
-	buttonSubscribe = new wxButton( this, wxID_HIGHEST+1, wxT("(Un)Subscribe"), wxDefaultPosition, wxDefaultSize, 0 );
+	buttonSubscribe = new wxButton( this, ID_SUBSCRIBE, wxT("(Un)Subscribe"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer4->Add( buttonSubscribe, 1, wxALL, 5 );
 
-	buttonUpdate = new wxButton( this, wxID_HIGHEST+2, wxT("Update"), wxDefaultPosition, wxDefaultSize, 0 );
+	buttonUpdate = new wxButton( this, ID_UPDATE, wxT("Update"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer4->Add( buttonUpdate, 1, wxALL, 5 );
 
-	buttonNMEA = new wxButton( this, wxID_HIGHEST+3, wxT("NMEA 0183"), wxDefaultPosition, wxDefaultSize, 0 );
+	buttonNMEA = new wxButton( this, ID_NMEA, wxT("NMEA 0183"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer4->Add( buttonNMEA, 0, wxALL, 5 );
 
-	butonAddress = new wxButton( this, wxID_HIGHEST+4, wxT("Rqst 60928"), wxDefaultPosition, wxDefaultSize, 0 );
+	butonAddress = new wxButton( this, ID_ADDRESS, wxT("Rqst 60928"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer4->Add( butonAddress, 0, wxALL, 5 );
 
-	buttonProduct = new wxButton( this, wxID_HIGHEST+5, wxT("Rqst 126996"), wxDefaultPosition, wxDefaultSize, 0 );
+	buttonProduct = new wxButton( this, ID_PRODUCT, wxT("Rqst 126996"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer4->Add( buttonProduct, 0, wxALL, 5 );
 
 
 	sizerPanel->Add( bSizer4, 1, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer41;
+	bSizer41 = new wxBoxSizer( wxVERTICAL );
+
+	editBox = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer41->Add( editBox, 0, wxALL|wxEXPAND, 5 );
+
+
+	sizerPanel->Add( bSizer41, 1, wxEXPAND, 5 );
 
 	wxBoxSizer* bSizer5;
 	bSizer5 = new wxBoxSizer( wxVERTICAL );

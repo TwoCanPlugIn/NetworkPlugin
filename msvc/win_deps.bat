@@ -107,4 +107,3 @@ if not exist "%WXWIN%" (
 dir cache
 type cache\wx-config.bat
 refreshenv
-PATH = %PATH%;"C:\Program Files (x86)\Poedit\GettextTools\bin"

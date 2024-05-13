@@ -44,6 +44,13 @@
 // OpenCPN include file
 #include "ocpn_plugin.h"
 
+// wxJSON
+#include "wx/json_defs.h"
+#include "wx/jsonreader.h"
+#include "wx/jsonval.h"
+#include "wx/jsonwriter.h"
+
+
 // Displays Grid View of NMEA 2000 devices 
 #include "network_pi_dialog.h"
 
@@ -180,7 +187,7 @@ private:
 	void SendSignalkUpdate(void);
 
 	// Send NMEA0183 Sentence
-	void SendNMEA0183(void);
+	void SendNMEA0183(wxString sentence);
 
 	// Change Brightness & Colour Mode for other instrument displays
 	bool SetNavicoDisplayBrightness(int brightness, int group);
@@ -397,6 +404,10 @@ private:
 
 	// BUG BUG Remove
 	bool subscribeFlag = true;
+
+	// SignalK
+	void HandleSignalK(ObservedEvt ev);
+	std::shared_ptr<ObservableListener> listener_SignalK;
 
 };
 
